@@ -1,0 +1,111 @@
+Screen {
+    layout: horizontal;
+}
+
+#containers-and-images {
+    width: 20%;
+}
+
+PockerContainers {
+    height: 50%;
+    border: round;
+    margin: 0;
+    padding: 0;
+}
+
+PockerImages {
+    height: 50%;
+    border: round;
+    margin: 0;
+    padding: 0;
+}
+
+VerticalScroll {
+    padding: 0;
+    margin: 0;
+}
+
+ListItem {
+    background: transparent;
+}
+
+.selected {
+    text-style: bold;
+    background: gray 10%;
+}
+
+RadioButton {
+    background: transparent;
+    height: 1;
+    border: none;
+    width: 100%;
+    padding: 0;
+}
+
+RichLog {
+    border: round cornflowerblue;
+    width: 80%;
+    height: 100%;
+}
+
+Input {
+    display: none;
+    border: round cornflowerblue;
+    background: transparent;
+    width: 80%;
+}
+
+PockerFooter {
+    color: white;
+    height: 1;
+    dock: bottom;
+}
+
+Button {
+    height: 1;
+    margin: 0 1 0 0;
+    border: none;
+}
+
+#startstopbuttons {
+    align: center middle;
+    height: 1;
+}
+
+.running {
+    color: green;
+}
+
+.down {
+    color: gray;
+}
+
+.stopped {
+    color: red;
+}
+
+Toast.-information .toast--title {
+    text-style: bold;
+}
+
+Toast {
+    padding: 1;
+}
+
+HelpScreen VerticalScroll {
+    background: $surface;
+    margin: 4 8;
+    border: round cornflowerblue;
+    height: 1fr;
+    .title {
+        width: auto;
+    }
+    scrollbar-gutter: stable;
+    Markdown {
+        margin:0 2;
+    }        
+    Markdown .code_inline {
+        background: $primary-darken-1;
+        text-style: bold;
+    }
+}

@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "pocker"
+version = "0.0.1"
+description = "CLI tool for docker images, containers, logs and more."
+authors = ["pommee"]
+readme = "README.md"
+packages = [{ include = "application" }]
+
+[tool.poetry.dependencies]
+python = "^3.10.9"
+docker = "^7.0.0"
+textual = "^0.59.0"
+black = "^24.4.2"
+textual-dev = "^1.5.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+pocker = "application.main:start"
