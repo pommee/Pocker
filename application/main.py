@@ -1,6 +1,7 @@
-import json
 import logging
 import re
+from typing import Self
+from cachetools import LRUCache
 from docker.models.containers import Container
 from threading import Event, Thread
 from textual import on
@@ -11,7 +12,6 @@ from textual.widgets import (
     RadioButton,
     Header,
     Button,
-    RichLog,
     Input,
     Label,
     ListItem,
@@ -22,8 +22,19 @@ from textual.widget import Widget
 from application.help import HelpScreen
 from application.docker_manager import DockerManager
 from textual.strip import Strip
-from rich.segment import Segment
 from textual.logging import TextualHandler
+from textual.geometry import Size
+from textual.strip import Strip
+from textual.scroll_view import ScrollView
+from rich.highlighter import Highlighter, ReprHighlighter
+from rich.console import RenderableType
+from rich.protocol import is_renderable
+from rich.pretty import Pretty
+from rich.text import Text
+from typing import cast
+from textual.geometry import Region
+from rich.segment import Segment
+from rich.measure import measure_renderables
 
 #### REFERENCES ####
 logs = None
@@ -61,7 +72,7 @@ def live_statistics_task():
 
         cpu = "{:.3f}%".format(cpu_usage * 100)
         memory = "{:.3f} MB".format(memory_usage_mb)
-        logs.border_subtitle = f"cpu: {cpu} | ram: {memory} | logs: {len(logs.lines)}"
+        # logs.border_subtitle = f"cpu: {cpu} | ram: {memory} | logs: {len(logs.lines)}"
 
 
 def live_status_events_task():
@@ -129,7 +140,8 @@ class PockerContainers(Widget):
         self.set_list_item_background(old_index, new_index)
 
     def set_border_title(self, text):
-        logs.border_title = text
+        # logs.border_title = text
+        pass
 
     def set_list_item_background(self, old_index: int, new_index: bool):
         old_container_list_item: ListItem = self.list_view.children[old_index]
@@ -177,10 +189,230 @@ class PockerImages(Widget):
 
     def on_list_view_selected(self, item: ListItem):
         list_view: ListView = self.query_one(ListView)
-        logs.write(list_view.index)
+        # logs.write(list_view.index)
 
 
-class ContentWindow(Widget):
+class ContentWindow(ScrollView):
+    """A widget for logging text."""
+
+    DEFAULT_CSS = """
+    RichLog{
+        background: $surface;
+        color: $text;
+        overflow-y: scroll;
+    }
+    """
+
+    def __init__(
+        self,
+        *,
+        max_lines: int | None = None,
+        min_width: int = 78,
+        wrap: bool = False,
+        highlight: bool = False,
+        markup: bool = False,
+        auto_scroll: bool = True,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+        disabled: bool = False,
+    ) -> None:
+        """Create a RichLog widget.
+
+        Args:
+            max_lines: Maximum number of lines in the log or `None` for no maximum.
+            min_width: Minimum width of renderables.
+            wrap: Enable word wrapping (default is off).
+            highlight: Automatically highlight content.
+            markup: Apply Rich console markup.
+            auto_scroll: Enable automatic scrolling to end.
+            name: The name of the text log.
+            id: The ID of the text log in the DOM.
+            classes: The CSS classes of the text log.
+            disabled: Whether the text log is disabled or not.
+        """
+        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        self.max_lines = max_lines
+        """Maximum number of lines in the log or `None` for no maximum."""
+        self._start_line: int = 0
+        self.lines: list[Strip] = []
+        self._line_cache: LRUCache[tuple[int, int, int, int], Strip]
+        self._line_cache = LRUCache(1024)
+        self.max_width: int = 0
+        self.min_width = min_width
+        """Minimum width of renderables."""
+        self.wrap = wrap
+        """Enable word wrapping."""
+        self.highlight = highlight
+        """Automatically highlight content."""
+        self.markup = markup
+        """Apply Rich console markup."""
+        self.auto_scroll = auto_scroll
+        """Automatically scroll to the end on write."""
+        self.highlighter: Highlighter = ReprHighlighter()
+        """Rich Highlighter used to highlight content when highlight is True"""
+
+        self._last_container_width: int = min_width
+        """Record the last width we rendered content at."""
+
+    def notify_style_update(self) -> None:
+        self._line_cache.clear()
+
+    def on_resize(self) -> None:
+        self._last_container_width = self.scrollable_content_region.width
+
+    def _make_renderable(self, content: RenderableType | object) -> RenderableType:
+        """Make content renderable.
+
+        Args:
+            content: Content to render.
+
+        Returns:
+            A Rich renderable.
+        """
+        renderable: RenderableType
+        if not is_renderable(content):
+            renderable = Pretty(content)
+        else:
+            if isinstance(content, str):
+                if self.markup:
+                    renderable = Text.from_markup(content)
+                else:
+                    renderable = Text(content)
+                if self.highlight:
+                    renderable = self.highlighter(renderable)
+            else:
+                renderable = cast(RenderableType, content)
+
+        if isinstance(renderable, Text):
+            renderable.expand_tabs()
+
+        return renderable
+
+    def write(
+        self,
+        content: RenderableType | object,
+        width: int | None = None,
+        expand: bool = False,
+        shrink: bool = True,
+        scroll_end: bool | None = None,
+    ) -> Self:
+        """Write text or a rich renderable.
+
+        Args:
+            content: Rich renderable (or text).
+            width: Width to render or `None` to use optimal width.
+            expand: Enable expand to widget width, or `False` to use `width`.
+            shrink: Enable shrinking of content to fit width.
+            scroll_end: Enable automatic scroll to end, or `None` to use `self.auto_scroll`.
+
+        Returns:
+            The `RichLog` instance.
+        """
+
+        auto_scroll = self.auto_scroll if scroll_end is None else scroll_end
+
+        console = self.app.console
+        render_options = console.options
+
+        renderable = self._make_renderable(content)
+
+        if isinstance(renderable, Text) and not self.wrap:
+            render_options = render_options.update(overflow="ignore", no_wrap=True)
+
+        render_width = measure_renderables(
+            console, render_options, [renderable]
+        ).maximum
+
+        container_width = (
+            self.scrollable_content_region.width if width is None else width
+        )
+
+        # Use the container_width if it's available, otherwise use the last available width.
+        container_width = (
+            container_width if container_width else self._last_container_width
+        )
+
+        if expand and render_width < container_width:
+            render_width = container_width
+        if shrink and render_width > container_width:
+            render_width = container_width
+
+        render_width = max(render_width, self.min_width)
+
+        segments = self.app.console.render(
+            renderable, render_options.update_width(render_width)
+        )
+        lines = list(Segment.split_lines(segments))
+        if not lines:
+            self.lines.append(Strip.blank(render_width))
+        else:
+            self.max_width = max(
+                self.max_width,
+                max(sum([segment.cell_length for segment in _line]) for _line in lines),
+            )
+            strips = Strip.from_lines(lines)
+            for strip in strips:
+                strip.adjust_cell_length(render_width)
+            self.lines.extend(strips)
+
+            if self.max_lines is not None and len(self.lines) > self.max_lines:
+                self._start_line += len(self.lines) - self.max_lines
+                self.refresh()
+                self.lines = self.lines[-self.max_lines :]
+        self.virtual_size = Size(self.max_width, len(self.lines))
+        if auto_scroll:
+            self.scroll_end(animate=False)
+
+        return self
+
+    def clear(self) -> Self:
+        """Clear the text log.
+
+        Returns:
+            The `RichLog` instance.
+        """
+        self.lines.clear()
+        self._line_cache.clear()
+        self._start_line = 0
+        self.max_width = 0
+        self.virtual_size = Size(self.max_width, len(self.lines))
+        self.refresh()
+        return self
+
+    def render_line(self, y: int) -> Strip:
+        scroll_x, scroll_y = self.scroll_offset
+        line = self._render_line(scroll_y + y, scroll_x, self.size.width)
+        strip = line.apply_style(self.rich_style)
+        return strip
+
+    def render_lines(self, crop: Region) -> list[Strip]:
+        """Render the widget in to lines.
+
+        Args:
+            crop: Region within visible area to.
+
+        Returns:
+            A list of list of segments.
+        """
+        lines = self._styles_cache.render_widget(self, crop)
+        return lines
+
+    def _render_line(self, y: int, scroll_x: int, width: int) -> Strip:
+        if y >= len(self.lines):
+            return Strip.blank(width, self.rich_style)
+
+        key = (y + self._start_line, scroll_x, width, self.max_width)
+        if key in self._line_cache:
+            return self._line_cache[key]
+
+        line = self.lines[y].crop_extend(scroll_x, scroll_x + width, self.rich_style)
+
+        self._line_cache[key] = line
+        return line
+
+
+class TestIt(Widget):
 
     current_index = 0
     search_keyword = ""
@@ -191,9 +423,9 @@ class ContentWindow(Widget):
 
         search_logs_input = Input(placeholder="Search logs...", type="text")
         yield search_logs_input
-        logs = RichLog(highlight=True, auto_scroll=True, name="Log")
-        logs.border_title = docker_manager.selected_container
-        logs.auto_scroll = True
+        logs = ContentWindow()
+        for x in range(100):
+            logs.write(x)
         yield logs
 
     def search_logs(self, pattern):
@@ -274,7 +506,7 @@ class UI(App):
         containers_and_images = Vertical(id="containers-and-images")
         pocker_containers = PockerContainers(id="PockerContainers")
         pocker_images = PockerImages(id="PockerImages")
-        content_window = ContentWindow(id="ContentWindow")
+        content_window = TestIt(id="ContentWindow")
         footer = Footer()
 
         yield header
@@ -303,7 +535,7 @@ class UI(App):
         status_events_thread.start()
 
     def set_header(self):
-        header_state = f"Mode: {self.MODE} ○ Containers: {len(docker_manager.containers)} ○ Scroll: {logs.auto_scroll}"
+        header_state = f"Mode: {self.MODE} ○ Containers: {len(docker_manager.containers)} ○ Scroll: {'logs.auto_scroll'}"
         self.sub_title = header_state
 
     def on_key(self, event: Input.Submitted) -> None:
@@ -313,19 +545,20 @@ class UI(App):
 
     def action_logs(self):
         self.MODE = "logs"
-        logs.clear()
-        logs.write(docker_manager.logs())
+        # logs.clear()
+        # logs.write(docker_manager.logs())
         self.set_header()
 
     def action_attributes(self):
         self.MODE = "attributes"
-        logs.clear()
-        logs.write(json.dumps(docker_manager.attributes(), indent=2))
+        # logs.clear()
+        # logs.write(json.dumps(docker_manager.attributes(), indent=2))
         self.set_header()
 
     def action_restore_logs(self):
-        logs.clear()
-        logs.write(docker_manager.logs())
+        # logs.clear()
+        # logs.write(docker_manager.logs())
+        pass
 
     def action_wrap_text(self):
         if logs.wrap == True:
@@ -357,7 +590,7 @@ class UI(App):
 
     def action_toggle_search_log(self):
         search_logs_input = self.query_one("Input")
-        content_window = self.query_one("RichLog")
+        content_window = self.query_one("TestIt")
 
         if search_logs_input.styles.display == "block":
             search_logs_input.styles.display = "none"

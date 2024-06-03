@@ -42,7 +42,7 @@ RadioButton {
     padding: 0;
 }
 
-RichLog {
+ContentWindow {
     border: round cornflowerblue;
     width: 80%;
     height: 100%;

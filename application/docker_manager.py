@@ -46,7 +46,8 @@ class DockerManager:
             status = "down"
         return status
 
-    def live_container_logs(self, logs: RichLog, stop_event: Event):
+    def live_container_logs(self, logs, stop_event: Event):
+        logging.info("#STATE# test %s", logs)
         logs.clear()
 
         while not stop_event.is_set():

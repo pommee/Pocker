@@ -12,6 +12,7 @@ docker = "^7.0.0"
 textual = "^0.59.0"
 black = "^24.4.2"
 textual-dev = "^1.5.1"
+cachetools = "^5.3.3"
 
 [build-system]
 requires = ["poetry-core"]
