@@ -29,23 +29,11 @@ ListItem {
     background: transparent;
 }
 
-.selected {
-    text-style: bold;
-    background: gray 10%;
-}
-
-RadioButton {
-    background: transparent;
-    height: 1;
-    border: none;
-    width: 100%;
-    padding: 0;
-}
-
 RichLog {
     border: round cornflowerblue;
     width: 80%;
     height: 100%;
+    scrollbar-size: 1 1;
 }
 
 Input {
@@ -72,15 +60,20 @@ Button {
     height: 1;
 }
 
-.running {
+ListItem.selected {
+    text-style: bold;
+    background: gray 10%;
+}
+
+ListItem.running {
     color: green;
 }
 
-.down {
+ListItem.down {
     color: gray;
 }
 
-.stopped {
+ListItem.stopped {
     color: red;
 }
 

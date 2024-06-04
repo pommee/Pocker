@@ -3,6 +3,7 @@ from threading import Event
 import time
 import docker
 from docker.models.containers import Container, ContainerCollection
+from docker.models.images import ImageCollection
 from textual.widgets import RichLog
 from textual.logging import TextualHandler
 
@@ -16,7 +17,7 @@ class DockerManager:
     def __init__(self) -> None:
         self.client = docker.from_env()
         self.containers: ContainerCollection = self.client.containers.list(all=True)
-        self.images = self.client.images.list(all=True)
+        self.images: ImageCollection = self.client.images.list(all=True)
         self.selected_container = self.containers[0].name
 
     def container(self, container_name: str) -> Container:

@@ -2,13 +2,13 @@ import json
 import logging
 import re
 from docker.models.containers import Container
+from docker.models.images import Image
 from threading import Event, Thread
 from textual import on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import (
     Footer,
-    RadioButton,
     Header,
     Button,
     RichLog,
@@ -27,7 +27,6 @@ from textual.logging import TextualHandler
 
 #### REFERENCES ####
 logs = None
-container_buttons: dict[str, RadioButton] = {}
 docker_manager = DockerManager()
 log_task_stop_event = Event()
 
@@ -50,45 +49,23 @@ def start_log_task():
 
 
 def live_statistics_task():
-    for x in docker_manager.container(docker_manager.selected_container).stats(
+    for stats in docker_manager.container(docker_manager.selected_container).stats(
         stream=True, decode=True
     ):
-        cpu_usage = (
-            x["cpu_stats"]["cpu_usage"]["total_usage"]
-            / x["cpu_stats"]["system_cpu_usage"]
-        )
-        memory_usage_mb = x["memory_stats"]["usage"] / (1024 * 1024)
+        try:
+            cpu_usage = (
+                stats["cpu_stats"]["cpu_usage"]["total_usage"]
+                / stats["cpu_stats"]["system_cpu_usage"]
+            )
+            memory_usage_mb = stats["memory_stats"]["usage"] / (1024 * 1024)
 
-        cpu = "{:.3f}%".format(cpu_usage * 100)
-        memory = "{:.3f} MB".format(memory_usage_mb)
-        logs.border_subtitle = f"cpu: {cpu} | ram: {memory} | logs: {len(logs.lines)}"
-
-
-def live_status_events_task():
-    for event in docker_manager.client.events(decode=True):
-        logging.info(str(event))
-        if event["Type"] == "container" and event["status"] in [
-            "start",
-            "stop",
-            "die",
-        ]:
-            status = ""
-            container_name = event.get("Actor").get("Attributes").get("name")
-            if event["status"] == "start":
-                status = "running"
-            elif event["status"] == "stop":
-                status = "stopped"
-            else:
-                status = "down"
-            container_buttons.get(
-                docker_manager.container(event["id"]).name
-            ).classes = status
-            if (
-                docker_manager.selected_container == container_name
-                and status == "running"
-            ):
-                button = container_buttons.get(container_name)
-                button.toggle()
+            cpu = "{:.3f}%".format(cpu_usage * 100)
+            memory = "{:.3f} MB".format(memory_usage_mb)
+            logs.border_subtitle = (
+                f"cpu: {cpu} | ram: {memory} | logs: {len(logs.lines)}"
+            )
+        except:
+            pass
 
 
 class PockerContainers(Widget):
@@ -96,47 +73,44 @@ class PockerContainers(Widget):
     current_index = 0
 
     def compose(self) -> ComposeResult:
-        docker_containers = docker_manager.containers
 
+        docker_containers = docker_manager.containers
         self.list_view = ListView(id="ContainersAndImagesListView")
 
         with self.list_view:
             container: Container
             for container in docker_containers:
-                is_running = container.attrs.get("State").get("Running")
                 status = "[U]"
-                if is_running is True:
+                if container.status == "running":
                     status = "running"
-                if not is_running:
+                else:
                     status = "down"
-                listview_container = ListItem(Label(container.name, classes=status))
-                container_buttons[container.name] = listview_container
+                listview_container = ListItem(
+                    Label(container.name), id=container.name, classes=status
+                )
                 yield listview_container
         with Horizontal(id="startstopbuttons"):
             yield Button("Start all", id="startAllContainers")
             yield Button("Stop all", id="stopAllContainers")
 
-    def on_mount(self):
+    def on_mount(self) -> None:
+        self.list_view.sort_children(
+            key=lambda listview_container: listview_container.has_class("running")
+        )
+        self.list_view.children[0].add_class("selected")
+        self.log(self.tree)
 
-        # Style first container when started
-        first_list_item: Label = self.list_view.children[0]
-        new_classes = frozenset(set(first_list_item.classes) | {"selected"})
-        first_list_item.classes = new_classes
-
-    def on_list_view_selected(self, item):
+    def on_list_view_selected(self):
         old_index = self.current_index
         new_index = self.list_view.index
         self.set_list_item_background(old_index, new_index)
 
-    def set_border_title(self, text):
-        logs.border_title = text
-
-    def set_list_item_background(self, old_index: int, new_index: bool):
+    def set_list_item_background(self, old_index: int, new_index: int):
         old_container_list_item: ListItem = self.list_view.children[old_index]
         new_container_list_item: ListItem = self.list_view.children[new_index]
 
         deselect_classes = frozenset(
-            set(new_container_list_item.classes) - {"selected"}
+            set(old_container_list_item.classes) - {"selected"}
         )
         select_classes = frozenset(set(new_container_list_item.classes) | {"selected"})
 
@@ -144,7 +118,6 @@ class PockerContainers(Widget):
         old_container_list_item.classes = deselect_classes
 
         self.current_index = self.list_view.index
-        self.set_border_title(new_container_list_item.children[0].renderable)
 
         docker_manager.selected_container = str(
             new_container_list_item.children[0].renderable
@@ -161,12 +134,39 @@ class PockerContainers(Widget):
             for container in docker_manager.containers:
                 container.start()
 
+    def live_status_events_task(self):
+        event: dict[str, str]
+        for event in docker_manager.client.events(decode=True):
+            if event["Type"] == "container" and event["status"] in [
+                "start",
+                "stop",
+                "die",
+            ]:
+                container_name = event.get("Actor").get("Attributes").get("name")
+                container_list_item: ListItem = self.list_view.get_child_by_id(
+                    container_name
+                )
+                status = ""
+                was_selected: bool = container_list_item.has_class("selected")
+
+                if event["status"] == "start":
+                    status = "running"
+                elif event["status"] == "stop":
+                    status = "stopped"
+                else:
+                    status = "down"
+
+                container_list_item.set_classes(status)
+                if was_selected:
+                    container_list_item.add_class("selected")
+
 
 class PockerImages(Widget):
     BORDER_TITLE: str = "Images"
 
     def compose(self) -> ComposeResult:
         with ListView(id="ContainersAndImagesListView"):
+            image: DockerManager
             for image in docker_manager.images:
                 repo_tags = image.attrs.get("RepoTags")
                 if len(repo_tags) != 0:
@@ -268,19 +268,21 @@ class UI(App):
     ]
 
     MODE = "LOGS"
+    pocker_containers: PockerContainers
+    pocker_images: PockerImages
 
     def compose(self) -> ComposeResult:
         header = Header()
         containers_and_images = Vertical(id="containers-and-images")
-        pocker_containers = PockerContainers(id="PockerContainers")
-        pocker_images = PockerImages(id="PockerImages")
+        self.pocker_containers = PockerContainers(id="PockerContainers")
+        self.pocker_images = PockerImages(id="PockerImages")
         content_window = ContentWindow(id="ContentWindow")
         footer = Footer()
 
         yield header
         with containers_and_images:
-            yield pocker_containers
-            yield pocker_images
+            yield self.pocker_containers
+            yield self.pocker_images
 
         yield content_window
         yield footer
@@ -298,12 +300,14 @@ class UI(App):
     def _run_threads(self):
         start_log_task()
         statistics_thread = Thread(target=live_statistics_task, daemon=True)
-        status_events_thread = Thread(target=live_status_events_task, daemon=True)
+        status_events_thread = Thread(
+            target=self.pocker_containers.live_status_events_task, daemon=True
+        )
         statistics_thread.start()
         status_events_thread.start()
 
     def set_header(self):
-        header_state = f"Mode: {self.MODE} ○ Containers: {len(docker_manager.containers)} ○ Scroll: {logs.auto_scroll}"
+        header_state = f"Mode: {self.MODE} ○ Containers: {len(docker_manager.containers)} ○ Wrap: {logs.wrap} ○ Scroll: {logs.auto_scroll}"
         self.sub_title = header_state
 
     def on_key(self, event: Input.Submitted) -> None:
@@ -332,6 +336,7 @@ class UI(App):
             logs.wrap = False
         else:
             logs.wrap = True
+        self.set_header()
         logs.clear()
         logs.write(docker_manager.logs())
 
@@ -344,16 +349,19 @@ class UI(App):
             self.query_one("ContentWindow").styles.width = "100%"
             self.query_one("RichLog").styles.width = "100%"
             self.query_one("RichLog").styles.border = ("blank", "transparent")
+            self.query_one("Input").styles.width = "100%"
         else:
             self.query_one("#containers-and-images").styles.display = "block"
             self.query_one("RichLog").styles.width = "80%"
             self.query_one("RichLog").styles.border = ("round", "cornflowerblue")
+            self.query_one("Input").styles.width = "80%"
 
     def action_toggle_auto_scroll(self):
         if logs.auto_scroll:
             logs.auto_scroll = False
         else:
             logs.auto_scroll = True
+        self.set_header()
 
     def action_toggle_search_log(self):
         search_logs_input = self.query_one("Input")
