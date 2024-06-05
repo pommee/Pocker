@@ -94,11 +94,11 @@ class PockerContainers(Widget):
             yield Button("Stop all", id="stopAllContainers")
 
     def on_mount(self) -> None:
+        self.list_view.children[0].add_class("selected")
         self.list_view.sort_children(
             key=lambda listview_container: listview_container.has_class("running"),
             reverse=True,
         )
-        self.list_view.children[0].add_class("selected")
         self.log(self.tree)
 
     def on_list_view_selected(self):
