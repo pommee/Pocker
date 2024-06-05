@@ -2,7 +2,6 @@ import json
 import logging
 import re
 from docker.models.containers import Container
-from docker.models.images import Image
 from threading import Event, Thread
 from textual import on
 from textual.app import App, ComposeResult
@@ -73,13 +72,11 @@ class PockerContainers(Widget):
     current_index = 0
 
     def compose(self) -> ComposeResult:
-
-        docker_containers = docker_manager.containers
         self.list_view = ListView(id="ContainersAndImagesListView")
 
         with self.list_view:
             container: Container
-            for container in docker_containers:
+            for container in docker_manager.containers:
                 status = "[U]"
                 if container.status == "running":
                     status = "running"
@@ -379,10 +376,5 @@ class UI(App):
         search_logs_input.focus()
 
 
-def start():
-    ui = UI()
-    ui.run()
-
-
 if __name__ == "__main__":
-    start()
+    UI().run()
