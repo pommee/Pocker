@@ -7,6 +7,8 @@ from docker.models.images import ImageCollection
 from textual.widgets import RichLog
 from textual.logging import TextualHandler
 
+from application.config import Config
+
 logging.basicConfig(
     level="INFO",
     handlers=[TextualHandler()],
@@ -14,11 +16,14 @@ logging.basicConfig(
 
 
 class DockerManager:
-    def __init__(self) -> None:
+    def __init__(self, config: Config) -> None:
         self.client = docker.from_env()
-        self.containers: ContainerCollection = self.client.containers.list(all=True)
+        self.containers: ContainerCollection = self.client.containers.list(
+            all=True, sparse=True
+        )
         self.images: ImageCollection = self.client.images.list(all=True)
-        self.selected_container = self.containers[0].name
+        self.selected_container = self.containers[0].attrs["Names"][0].replace("/", "")
+        self.config = config
 
     def container(self, container_name: str) -> Container:
         return self.client.containers.get(container_name)
@@ -27,12 +32,10 @@ class DockerManager:
         return self.container(self.selected_container)
 
     def logs(self):
-        return (
-            self.container(self.selected_container)
-            .logs(follow=False)
-            .decode("utf-8")
-            .strip()
+        logs: bytes = self.curr_container().logs(
+            tail=self.config.log_tail, follow=False, stream=False
         )
+        return logs.decode("utf-8").strip()
 
     def attributes(self):
         return self.container(self.selected_container).attrs
@@ -54,12 +57,7 @@ class DockerManager:
             if len(logs.lines) == 0:
                 last_fetch = time.time()
                 # If logs are empty, write initial logs
-                logs.write(
-                    self.container(self.selected_container)
-                    .logs()
-                    .decode("utf-8")
-                    .strip()
-                )
+                logs.write(self.logs())
 
             new_logs = (
                 self.container(self.selected_container)

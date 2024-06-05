@@ -1,2 +1,2 @@
 dev:
-	textual run --dev application.main:UI
+	poetry shell && textual run --dev application.main:UI

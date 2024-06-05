@@ -24,11 +24,13 @@ from textual.strip import Strip
 from rich.segment import Segment
 from textual.logging import TextualHandler
 
+from application.config import Config, load_config
+
 #### REFERENCES ####
 logs = None
-docker_manager = DockerManager()
 log_task_stop_event = Event()
-
+config: Config = None
+docker_manager: DockerManager = None
 
 logging.basicConfig(
     level="INFO",
@@ -82,8 +84,9 @@ class PockerContainers(Widget):
                     status = "running"
                 else:
                     status = "down"
+                container_name = container.attrs["Names"][0].replace("/", "")
                 listview_container = ListItem(
-                    Label(container.name), id=container.name, classes=status
+                    Label(container_name), id=container_name, classes=status
                 )
                 yield listview_container
         with Horizontal(id="startstopbuttons"):
@@ -270,6 +273,11 @@ class UI(App):
     pocker_images: PockerImages
 
     def compose(self) -> ComposeResult:
+        global config, docker_manager
+
+        config = load_config()
+        docker_manager = DockerManager(config)
+
         header = Header()
         containers_and_images = Vertical(id="containers-and-images")
         self.pocker_containers = PockerContainers(id="PockerContainers")
@@ -288,7 +296,16 @@ class UI(App):
     def on_mount(self) -> None:
         self._run_threads()
         self.title = "Pocker"
+
+        if config.start_fullscreen:
+            self.action_toggle_content_full_screen()
+        if config.start_wrap:
+            self.action_wrap_text()
+        if not config.start_scroll:
+            self.action_toggle_auto_scroll()
+
         self.set_header()
+
         # self.notify(
         #    title="New version available!",
         #    message="Update to v1.2.1 by running: 'pocker update'",

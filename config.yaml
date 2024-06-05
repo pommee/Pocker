@@ -1,0 +1,4 @@
+log_tail: 2000
+start_fullscreen: false
+start_scroll: true
+start_wrap: false
