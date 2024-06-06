@@ -4,6 +4,9 @@ version = "1.2.0"
 description = "CLI tool for docker images, containers, logs and more."
 authors = ["pommee"]
 readme = "README.md"
+homepage = "https://github.com/pommee/Pocker"
+repository = "https://github.com/pommee/Pocker"
+documentation = "https://github.com/pommee/Pocker"
 packages = [{ include = "application" }]
 
 [tool.poetry.dependencies]
@@ -13,11 +16,11 @@ textual = "^0.59.0"
 black = "^24.4.2"
 textual-dev = "^1.5.1"
 pyyaml = "^6.0.1"
-tomlkit = "^0.12.5"
+pydantic = "^2.7.3"
+
+[tool.poetry.scripts]
+pocker = "application.main:start"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-pocker = "application.main:start"

@@ -2,8 +2,6 @@
   <img src="./resources/pocker-name.png" />
 </p>
 
----
-
 ![image](./resources/image.png)
 
 # Pocker

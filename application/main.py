@@ -414,5 +414,9 @@ class UI(App):
         search_logs_input.focus()
 
 
-if __name__ == "__main__":
+def start():
     UI().run()
+
+
+if __name__ == "__main__":
+    start()

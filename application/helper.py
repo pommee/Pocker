@@ -1,9 +1,8 @@
 import datetime
 import os
-from typing import Any
+import subprocess
 from pydantic import BaseModel
 import requests
-from tomlkit import parse
 from packaging.version import parse as version_parse
 import yaml
 
@@ -22,11 +21,19 @@ def get_latest_version():
 
 
 def get_current_version():
-    file_path = "pyproject.toml"
-    with open(file_path, "r") as file:
-        pyproject_data = parse(file.read())
-        current_version = pyproject_data["tool"]["poetry"]["version"]
-        return current_version
+    try:
+        result = subprocess.run(
+            ["pipx", "list", "--short"], text=True, capture_output=True, check=True
+        )
+
+        for line in result.stdout.splitlines():
+            if "pocker" in line:
+                version = line.split()[1]
+                return version
+
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred: {e}")
+        return None
 
 
 class Version_Fetch(BaseModel):
