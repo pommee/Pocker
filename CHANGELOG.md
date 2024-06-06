@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/pommee/Pocker/compare/v1.1.0...v1.2.0) (2024-06-06)
+
+
+### Features
+
+* notification when update available ([a83734e](https://github.com/pommee/Pocker/commit/a83734e0b8da4be833ea1cb683e7209d84dcbe3a))
+
 # [1.1.0](https://github.com/pommee/Pocker/compare/v1.0.0...v1.1.0) (2024-06-05)
 
 
