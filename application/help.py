@@ -7,6 +7,8 @@ from textual.app import ComposeResult
 from textual.containers import Center, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Static, Markdown, Footer
+from application.helper import get_current_version
+
 
 HELP_MD = """
 Pocker is a tool for the terminal to do Docker related tasks.
@@ -36,7 +38,7 @@ Author: [pommee](https://github.com/pommee)
 TITLE = rf"""
   _____   _____  _______ _     _ _______  ______
  |_____] |     | |       |____/  |______ |_____/
- |       |_____| |_____  |    \_ |______ |    \_  
+ |       |_____| |_____  |    \_ |______ |    \_  v{get_current_version()}
 
 """
 
@@ -66,7 +68,7 @@ class HelpScreen(ModalScreen):
         with VerticalScroll() as vertical_scroll:
             with Center():
                 yield Static(get_title(), classes="title")
-            yield Markdown(HELP_MD)
+            yield Markdown(HELP_MD + self.read_changelog())
         vertical_scroll.border_title = "Help"
 
     @on(Markdown.LinkClicked)
@@ -75,3 +77,8 @@ class HelpScreen(ModalScreen):
 
     def action_go(self, href: str) -> None:
         webbrowser.open(href)
+
+    def read_changelog(self):
+        file_path = "CHANGELOG.md"
+        with open(file_path, "r") as file:
+            return "---  \n### Changelog\n" + file.read()

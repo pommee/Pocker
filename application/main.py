@@ -25,6 +25,14 @@ from rich.segment import Segment
 from textual.logging import TextualHandler
 
 from application.config import Config, load_config
+from application.helper import (
+    get_current_version,
+    get_latest_version,
+    read_latest_version_fetch,
+    time_since_last_fetch,
+    write_latest_version_fetch,
+)
+from packaging.version import parse
 
 #### REFERENCES ####
 logs = None
@@ -306,11 +314,24 @@ class UI(App):
 
         self.set_header()
 
-        # self.notify(
-        #    title="New version available!",
-        #    message="Update to v1.2.1 by running: 'pocker update'",
-        #    timeout=6,
-        # )
+        current_version = parse(get_current_version())
+        last_fetch = read_latest_version_fetch()
+
+        if parse(last_fetch.version_fetched) > current_version:
+            # Fetch latest version if more than 20 minutes ago.
+            if time_since_last_fetch() > 20:
+                latest_version = get_latest_version()
+                if latest_version is not None:
+                    if latest_version > current_version:
+                        self._show_update_notification(current_version, latest_version)
+                    write_latest_version_fetch(latest_version.base_version)
+
+    def _show_update_notification(self, current_version, latest_version):
+        self.notify(
+            title=f"New version available! v{current_version} -> v{latest_version}",
+            message=f"Update by running: 'pocker update'\nhttps://github.com/pommee/Pocker/releases/tag/v{latest_version.base_version}",
+            timeout=6,
+        )
 
     def _run_threads(self):
         start_log_task()
