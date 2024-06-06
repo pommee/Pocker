@@ -325,7 +325,7 @@ class UI(App):
 
         if parse(last_fetch.version_fetched) > current_version:
             # Fetch latest version if more than 20 minutes ago.
-            if time_since_last_fetch() > 0.1:
+            if time_since_last_fetch() > 20:
                 latest_version = get_latest_version()
                 if latest_version is not None:
                     if latest_version > current_version:
@@ -437,7 +437,7 @@ def update(force):
     current_version = parse(get_current_version())
     latest_version = None
 
-    if time_since_last_fetch() < 0.1 and not force:
+    if time_since_last_fetch() < 5 and not force:
         print(
             f"⚠️ {Fore.YELLOW}Updating too often might lead to being rate-limited.{Style.RESET_ALL}\n"
             "Pass --force or -f to force update."
