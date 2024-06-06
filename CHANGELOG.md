@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/pommee/Pocker/compare/v1.2.0...v1.3.0) (2024-06-06)
+
+
+### Bug Fixes
+
+* increase git fetch time, prevent rate limit ([088773d](https://github.com/pommee/Pocker/commit/088773d213c90d2d47446ac45571a320fe291a47))
+
+
+### Features
+
+* added update command ([279f17f](https://github.com/pommee/Pocker/commit/279f17f5f36c72afadb9d305ff8d85000d3d7f14))
+
 # [1.2.0](https://github.com/pommee/Pocker/compare/v1.1.0...v1.2.0) (2024-06-06)
 
 
