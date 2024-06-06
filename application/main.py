@@ -1,38 +1,44 @@
 import json
 import logging
 import re
-from docker.models.containers import Container
+import subprocess
 from threading import Event, Thread
+
+import click
+from colorama import Fore, Style
+from docker.models.containers import Container
+from packaging.version import parse
+from rich.segment import Segment
 from textual import on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
+from textual.containers import Horizontal, Vertical
+from textual.logging import TextualHandler
+from textual.strip import Strip
+from textual.widget import Widget
 from textual.widgets import (
+    Button,
     Footer,
     Header,
-    Button,
-    RichLog,
     Input,
     Label,
     ListItem,
     ListView,
+    RichLog,
 )
-from textual.containers import Horizontal, Vertical
-from textual.widget import Widget
-from application.help import HelpScreen
-from application.docker_manager import DockerManager
-from textual.strip import Strip
-from rich.segment import Segment
-from textual.logging import TextualHandler
+from yaspin import yaspin
 
 from application.config import Config, load_config
+from application.docker_manager import DockerManager
+from application.help import HelpScreen
 from application.helper import (
     get_current_version,
     get_latest_version,
+    read_changelog,
     read_latest_version_fetch,
     time_since_last_fetch,
     write_latest_version_fetch,
 )
-from packaging.version import parse
 
 #### REFERENCES ####
 logs = None
@@ -319,7 +325,7 @@ class UI(App):
 
         if parse(last_fetch.version_fetched) > current_version:
             # Fetch latest version if more than 20 minutes ago.
-            if time_since_last_fetch() > 20:
+            if time_since_last_fetch() > 0.1:
                 latest_version = get_latest_version()
                 if latest_version is not None:
                     if latest_version > current_version:
@@ -329,7 +335,7 @@ class UI(App):
     def _show_update_notification(self, current_version, latest_version):
         self.notify(
             title=f"New version available! v{current_version} -> v{latest_version}",
-            message=f"Update by running: 'pocker update'\nhttps://github.com/pommee/Pocker/releases/tag/v{latest_version.base_version}",
+            message=f"Update by running: 'pocker update",
             timeout=6,
         )
 
@@ -418,5 +424,50 @@ def start():
     UI().run()
 
 
-if __name__ == "__main__":
-    start()
+@click.group(invoke_without_command=True)
+@click.pass_context
+def cli(ctx):
+    if ctx.invoked_subcommand is None:
+        start()
+
+
+@cli.command()
+@click.option("--force", "-f", is_flag=True, help="Force update.")
+def update(force):
+    current_version = parse(get_current_version())
+    latest_version = None
+
+    if time_since_last_fetch() < 0.1 and not force:
+        print(
+            f"⚠️ {Fore.YELLOW}Updating too often might lead to being rate-limited.{Style.RESET_ALL}\n"
+            "Pass --force or -f to force update."
+        )
+        return
+    else:
+        latest_version = get_latest_version()
+        write_latest_version_fetch(latest_version.base_version)
+
+    if latest_version is not None and latest_version > current_version:
+        with yaspin(text=f"Updating to v{latest_version}", timer=True) as sp:
+            result = subprocess.run(
+                [
+                    "pipx",
+                    "install",
+                    "git+https://github.com/pommee/Pocker@main",
+                    "--force",
+                ],
+                text=True,
+                capture_output=True,
+                check=True,
+            )
+            sp.ok()
+            if "installed package pocker" in result.stdout:
+                click.echo(
+                    f"Pocker is now updated from{Fore.LIGHTYELLOW_EX} v{current_version}{Style.RESET_ALL}{Fore.LIGHTGREEN_EX} -> v{latest_version}{Style.RESET_ALL}"
+                )
+                read_changelog(current_version)
+            return
+    if latest_version == current_version:
+        print(
+            f"{Fore.LIGHTGREEN_EX}Already running latest (v{latest_version}){Style.RESET_ALL}"
+        )

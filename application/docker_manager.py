@@ -1,11 +1,12 @@
 import logging
-from threading import Event
 import time
+from threading import Event
+
 import docker
 from docker.models.containers import Container, ContainerCollection
 from docker.models.images import ImageCollection
-from textual.widgets import RichLog
 from textual.logging import TextualHandler
+from textual.widgets import RichLog
 
 from application.config import Config
 

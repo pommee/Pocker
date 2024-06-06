@@ -1,14 +1,13 @@
 import webbrowser
 
 from rich.text import Text
-
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Center, VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import Static, Markdown, Footer
-from application.helper import get_current_version
+from textual.widgets import Footer, Markdown, Static
 
+from application.helper import get_current_version
 
 HELP_MD = """
 Pocker is a tool for the terminal to do Docker related tasks.

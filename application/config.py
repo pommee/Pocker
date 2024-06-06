@@ -1,7 +1,7 @@
 import os
+
 import yaml
 from pydantic import BaseModel
-
 
 CONFIG_PATH = "config.yaml"
 
