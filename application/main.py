@@ -353,8 +353,11 @@ class UI(App):
 
     def on_key(self, event: Input.Submitted) -> None:
         key = str(event.name)
-        if self.query_one(Input).has_focus and key == "escape":
-            self.action_toggle_search_log()
+        try:
+            if self.query_one(Input).has_focus and key == "escape":
+                self.action_toggle_search_log()
+        except:
+            pass
 
     def action_logs(self):
         self.MODE = "logs"
