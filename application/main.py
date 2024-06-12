@@ -208,7 +208,7 @@ class ContentWindow(Widget):
         yield search_logs_input
         logs = RichLog(highlight=True, auto_scroll=True, name="Log")
         logs.border_title = docker_manager.selected_container
-        logs.auto_scroll = True
+        logs.scroll_end(animate=False)
         yield logs
 
     def search_logs(self, pattern):
