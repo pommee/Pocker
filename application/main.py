@@ -226,9 +226,9 @@ class ContentWindow(Widget):
     def input_submitted(self, event: Input.Submitted) -> None:
         event.stop()
         keyword = str(event.value)
+        input = self.query_one(Input)
 
         if len(keyword) == 0:
-            input = self.query_one("Input")
             input.border_title = None
             self.current_index = 0
             return
@@ -253,12 +253,11 @@ class ContentWindow(Widget):
             new_strip = Strip(new_segments)
             logs.lines[self.current_index] = new_strip
         else:
-            input = self.query_one("Input")
             input.border_title = "No results"
             self.current_index = 0
 
     def update_input_border(self, line: str):
-        input = self.query_one("Input")
+        input = self.query_one(Input)
         input.border_title = f"{(self.current_index + 1)}/{len(self.indices) - 1}"
         input.border_subtitle = f"line {line}"
 
@@ -309,7 +308,7 @@ class UI(App):
 
     def on_mount(self) -> None:
         self._run_threads()
-        self.title = "Pocker"
+        self.title = f"Pocker"
 
         if config.start_fullscreen:
             self.action_toggle_content_full_screen()
@@ -354,7 +353,7 @@ class UI(App):
 
     def on_key(self, event: Input.Submitted) -> None:
         key = str(event.name)
-        if self.query_one("Input").has_focus and key == "escape":
+        if self.query_one(Input).has_focus and key == "escape":
             self.action_toggle_search_log()
 
     def action_logs(self):

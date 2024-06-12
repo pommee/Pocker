@@ -1,5 +1,6 @@
 import datetime
 import os
+from pathlib import Path
 import re
 import subprocess
 
@@ -8,6 +9,9 @@ import yaml
 from colorama import Fore, Style
 from packaging.version import parse as version_parse
 from pydantic import BaseModel
+
+
+POCKER_CONFIG_BASE_PATH = Path.home() / ".config/pocker"
 
 
 def get_latest_version():
@@ -49,8 +53,10 @@ def write_latest_version_fetch(version):
         "time_fetched": datetime.datetime.now(),
         "version_fetched": version,
     }
+    if not os.path.exists(POCKER_CONFIG_BASE_PATH):
+        POCKER_CONFIG_BASE_PATH.mkdir()
 
-    with open("latest_version_fetch.yaml", "w") as file:
+    with open(POCKER_CONFIG_BASE_PATH / "latest_version_fetch.yaml", "w") as file:
         yaml.safe_dump(version_fetch_dict, file)
 
 
@@ -58,7 +64,7 @@ def read_latest_version_fetch():
     if not os.path.exists("latest_version_fetch.yaml"):
         current_version = version_parse(get_current_version())
         write_latest_version_fetch(current_version.base_version)
-    with open("latest_version_fetch.yaml", "r") as file:
+    with open(POCKER_CONFIG_BASE_PATH / "latest_version_fetch.yaml", "r") as file:
         fetch_dict = yaml.safe_load(file)
         return Version_Fetch(**fetch_dict)
 

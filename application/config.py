@@ -3,7 +3,9 @@ import os
 import yaml
 from pydantic import BaseModel
 
-CONFIG_PATH = "config.yaml"
+from application.helper import POCKER_CONFIG_BASE_PATH
+
+CONFIG_PATH = POCKER_CONFIG_BASE_PATH / "config.yaml"
 
 
 class Config(BaseModel):
