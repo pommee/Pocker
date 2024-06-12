@@ -1,3 +1,12 @@
+## [1.3.2](https://github.com/pommee/Pocker/compare/v1.3.1...v1.3.2) (2024-06-12)
+
+
+### Bug Fixes
+
+* correctly fetch changelog and better view in help screen ([012c949](https://github.com/pommee/Pocker/commit/012c9491f7e38039dabec92be9cee09e847218d7))
+* escape help screen correct ([c330707](https://github.com/pommee/Pocker/commit/c3307079914ee7de2caa3cffe1476409d7368769))
+* scroll to latest on startup ([67bc2a9](https://github.com/pommee/Pocker/commit/67bc2a9e20e5fb1a68ac6edff6182332f687d6a5))
+
 ## [1.3.1](https://github.com/pommee/Pocker/compare/v1.3.0...v1.3.1) (2024-06-12)
 
 
