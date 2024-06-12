@@ -3,3 +3,4 @@ test.py
 __pycache__
 .vscode
 latest_version_fetch.yaml
+dist
