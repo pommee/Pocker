@@ -90,7 +90,6 @@ Toast {
 HelpScreen VerticalScroll {
     background: $surface;
     margin: 4 8;
-    border: round cornflowerblue;
     height: 1fr;
     .title {
         width: auto;
@@ -102,5 +101,20 @@ HelpScreen VerticalScroll {
     Markdown .code_inline {
         background: $primary-darken-1;
         text-style: bold;
+    }
+    Markdown#changelog #block1 {
+        width: 100%;
+        border: none;
+        background: transparent;
+    }
+    MarkdownH1 {
+        width: auto;
+        border: none;
+        background: transparent;
+    }
+    MarkdownH2 {
+        width: auto;
+        border: none;
+        background: transparent;
     }
 }

@@ -1,5 +1,6 @@
 import webbrowser
 
+import requests
 from rich.text import Text
 from textual import on
 from textual.app import ComposeResult
@@ -7,7 +8,7 @@ from textual.containers import Center, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Footer, Markdown, Static
 
-from application.helper import get_current_version
+from application.helper import POCKER_CONFIG_BASE_PATH, get_current_version
 
 HELP_MD = """
 Pocker is a tool for the terminal to do Docker related tasks.
@@ -66,9 +67,12 @@ class HelpScreen(ModalScreen):
         yield Footer()
         with VerticalScroll() as vertical_scroll:
             with Center():
-                yield Static(get_title(), classes="title")
-            yield Markdown(HELP_MD + self.read_changelog())
-        vertical_scroll.border_title = "Help"
+                yield Static(get_title(), id="title", classes="title")
+            yield Markdown(HELP_MD, id="help", classes="help")
+            yield Markdown(self.read_changelog(), id="changelog", classes="changelog")
+
+    def on_mount(self):
+        self.log(self.tree)
 
     @on(Markdown.LinkClicked)
     def on_markdown_link_clicked(self, event: Markdown.LinkClicked) -> None:
@@ -78,6 +82,16 @@ class HelpScreen(ModalScreen):
         webbrowser.open(href)
 
     def read_changelog(self):
-        file_path = "CHANGELOG.md"
+        file_path = POCKER_CONFIG_BASE_PATH / "CHANGELOG.md"
+        if not file_path.exists():
+            response = requests.get(
+                "https://raw.githubusercontent.com/pommee/Pocker/main/CHANGELOG.md"
+            )
+            if response.status_code == 200:
+                with open(file_path, "w") as file:
+                    file.write(response.text)
+            else:
+                return response.text
+
         with open(file_path, "r") as file:
-            return "---  \n### Changelog\n" + file.read()
+            return "---  \n# Changelog  \n\n" + file.read()
