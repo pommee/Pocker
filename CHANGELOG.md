@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/pommee/Pocker/compare/v1.3.0...v1.3.1) (2024-06-12)
+
+
+### Bug Fixes
+
+* config and last fetch time placed in home config dot files ([dc2f1f0](https://github.com/pommee/Pocker/commit/dc2f1f02dffef1854ef94603d58ae590fd1fbd94))
+
 # [1.3.0](https://github.com/pommee/Pocker/compare/v1.2.0...v1.3.0) (2024-06-06)
 
 
