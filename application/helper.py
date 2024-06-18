@@ -26,7 +26,7 @@ def get_latest_version():
         return None
 
 
-async def get_current_version():
+def get_current_version():
     try:
         result = subprocess.run(
             ["pipx", "list", "--short"], text=True, capture_output=True, check=True
@@ -61,7 +61,7 @@ def write_latest_version_fetch(version):
 
 async def read_latest_version_fetch():
     if not os.path.exists("latest_version_fetch.yaml"):
-        current_version = version_parse(await get_current_version())
+        current_version = version_parse(get_current_version())
         write_latest_version_fetch(current_version.base_version)
     with open(POCKER_CONFIG_BASE_PATH / "latest_version_fetch.yaml", "r") as file:
         fetch_dict = yaml.safe_load(file)
