@@ -1,3 +1,10 @@
+## [1.3.4](https://github.com/pommee/Pocker/compare/v1.3.3...v1.3.4) (2024-06-18)
+
+
+### Bug Fixes
+
+* correct version number ([f531fab](https://github.com/pommee/Pocker/commit/f531fab451ad61f85a920cd682abd2cb53706392))
+
 ## [1.3.3](https://github.com/pommee/Pocker/compare/v1.3.2...v1.3.3) (2024-06-18)
 
 
