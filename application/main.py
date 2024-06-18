@@ -9,7 +9,7 @@ from colorama import Fore, Style
 from docker.models.containers import Container
 from packaging.version import parse
 from rich.segment import Segment
-from textual import on
+from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
@@ -107,13 +107,12 @@ class PockerContainers(Widget):
             yield Button("Start all", id="startAllContainers")
             yield Button("Stop all", id="stopAllContainers")
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         self.list_view.children[0].add_class("selected")
         self.list_view.sort_children(
             key=lambda listview_container: listview_container.has_class("running"),
             reverse=True,
         )
-        self.log(self.tree)
 
     def on_list_view_selected(self):
         old_index = self.current_index
@@ -204,8 +203,7 @@ class ContentWindow(Widget):
     def compose(self) -> ComposeResult:
         global logs
 
-        search_logs_input = Input(placeholder="Search logs...", type="text")
-        yield search_logs_input
+        yield Input(placeholder="Search logs...", type="text")
         logs = RichLog(highlight=True, auto_scroll=True, name="Log")
         logs.border_title = docker_manager.selected_container
         logs.scroll_end(animate=False)
@@ -265,6 +263,7 @@ class ContentWindow(Widget):
 class UI(App):
     CSS_PATH = "styles.tcss"
     SCREENS = {"helpscreen": HelpScreen()}
+    TITLE = "Pocker"
     BINDINGS = [
         Binding(key="q", action="quit", description="Quit the app"),
         Binding(
@@ -282,8 +281,6 @@ class UI(App):
     ]
 
     MODE = "LOGS"
-    pocker_containers: PockerContainers
-    pocker_images: PockerImages
 
     def compose(self) -> ComposeResult:
         global config, docker_manager
@@ -291,24 +288,15 @@ class UI(App):
         config = load_config()
         docker_manager = DockerManager(config)
 
-        header = Header()
-        containers_and_images = Vertical(id="containers-and-images")
-        self.pocker_containers = PockerContainers(id="PockerContainers")
-        self.pocker_images = PockerImages(id="PockerImages")
-        content_window = ContentWindow(id="ContentWindow")
-        footer = Footer()
+        yield Header()
+        with Vertical(id="containers-and-images"):
+            yield PockerContainers(id="PockerContainers")
+            yield PockerImages(id="PockerImages")
+        yield ContentWindow(id="ContentWindow")
+        yield Footer()
 
-        yield header
-        with containers_and_images:
-            yield self.pocker_containers
-            yield self.pocker_images
-
-        yield content_window
-        yield footer
-
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         self._run_threads()
-        self.title = f"Pocker"
 
         if config.start_fullscreen:
             self.action_toggle_content_full_screen()
@@ -317,10 +305,12 @@ class UI(App):
         if not config.start_scroll:
             self.action_toggle_auto_scroll()
 
-        self.set_header()
+        self._look_for_update()
 
-        current_version = parse(get_current_version())
-        last_fetch = read_latest_version_fetch()
+    @work(exclusive=True)
+    async def _look_for_update(self):
+        current_version = parse(await get_current_version())
+        last_fetch = await read_latest_version_fetch()
 
         if parse(last_fetch.version_fetched) > current_version:
             # Fetch latest version if more than 20 minutes ago.
@@ -342,7 +332,7 @@ class UI(App):
         start_log_task()
         statistics_thread = Thread(target=live_statistics_task, daemon=True)
         status_events_thread = Thread(
-            target=self.pocker_containers.live_status_events_task, daemon=True
+            target=self.query_one(PockerContainers).live_status_events_task, daemon=True
         )
         statistics_thread.start()
         status_events_thread.start()
@@ -385,20 +375,25 @@ class UI(App):
         logs.write(docker_manager.logs())
 
     def action_toggle_content_full_screen(self):
+        rich_log = self.query_one(RichLog)
+        containers_and_images = self.query_one(Vertical)
+        search_window = self.query_one(Input)
+
         containers_and_images_styling = self.query_one(
             "#containers-and-images"
         ).styles.display
         if containers_and_images_styling == "block":
-            self.query_one("#containers-and-images").styles.display = "none"
-            self.query_one("ContentWindow").styles.width = "100%"
-            self.query_one("RichLog").styles.width = "100%"
-            self.query_one("RichLog").styles.border = ("blank", "transparent")
-            self.query_one("Input").styles.width = "100%"
+            containers_and_images.styles.display = "none"
+            self.query_one(ContentWindow).styles.width = "100%"
+            rich_log.styles.width = "100%"
+            rich_log.styles.border = ("blank", "transparent")
+            search_window.styles.width = "100%"
         else:
-            self.query_one("#containers-and-images").styles.display = "block"
-            self.query_one("RichLog").styles.width = "80%"
-            self.query_one("RichLog").styles.border = ("round", "cornflowerblue")
-            self.query_one("Input").styles.width = "80%"
+            containers_and_images.styles.display = "block"
+            rich_log.styles.width = "80%"
+            rich_log.styles.border = ("round", "cornflowerblue")
+            search_window.styles.width = "80%"
+        self.set_header()
 
     def action_toggle_auto_scroll(self):
         if logs.auto_scroll:
@@ -408,8 +403,8 @@ class UI(App):
         self.set_header()
 
     def action_toggle_search_log(self):
-        search_logs_input = self.query_one("Input")
-        content_window = self.query_one("RichLog")
+        search_logs_input = self.query_one(Input)
+        content_window = self.query_one(RichLog)
 
         if search_logs_input.styles.display == "block":
             search_logs_input.styles.display = "none"

@@ -70,4 +70,4 @@ class DockerManager:
                 last_fetch = time.time()
                 logs.write(new_logs.rstrip())
 
-            time.sleep(0.6)
+            time.sleep(1)

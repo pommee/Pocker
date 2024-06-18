@@ -71,9 +71,6 @@ class HelpScreen(ModalScreen):
             yield Markdown(HELP_MD, id="help", classes="help")
             yield Markdown(self.read_changelog(), id="changelog", classes="changelog")
 
-    def on_mount(self):
-        self.log(self.tree)
-
     @on(Markdown.LinkClicked)
     def on_markdown_link_clicked(self, event: Markdown.LinkClicked) -> None:
         self.action_go(event.href)
