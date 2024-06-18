@@ -310,7 +310,7 @@ class UI(App):
     @work(exclusive=True)
     async def _look_for_update(self):
         current_version = parse(get_current_version())
-        last_fetch = await read_latest_version_fetch()
+        last_fetch = read_latest_version_fetch()
 
         if parse(last_fetch.version_fetched) > current_version:
             # Fetch latest version if more than 20 minutes ago.

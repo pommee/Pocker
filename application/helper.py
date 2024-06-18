@@ -59,7 +59,7 @@ def write_latest_version_fetch(version):
         yaml.safe_dump(version_fetch_dict, file)
 
 
-async def read_latest_version_fetch():
+def read_latest_version_fetch():
     if not os.path.exists("latest_version_fetch.yaml"):
         current_version = version_parse(get_current_version())
         write_latest_version_fetch(current_version.base_version)
