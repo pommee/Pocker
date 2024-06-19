@@ -1,3 +1,10 @@
+## [1.3.6](https://github.com/pommee/Pocker/compare/v1.3.5...v1.3.6) (2024-06-19)
+
+
+### Bug Fixes
+
+* performance improvements ([82583a1](https://github.com/pommee/Pocker/commit/82583a1a8be955fff7584a3689f5fa51a2894860))
+
 ## [1.3.5](https://github.com/pommee/Pocker/compare/v1.3.4...v1.3.5) (2024-06-18)
 
 
