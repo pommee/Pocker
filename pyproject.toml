@@ -10,18 +10,20 @@ documentation = "https://github.com/pommee/Pocker"
 packages = [{ include = "application" }]
 
 [tool.poetry.dependencies]
-python = "^3.11.9"
+python = "^3.10.9"
 docker = "^7.0.0"
 textual = "^0.59.0"
 black = "^24.4.2"
-textual-dev = "^1.5.1"
 pyyaml = "^6.0.1"
 pydantic = "^2.7.3"
 click = "^8.1.7"
 colorama = "^0.4.6"
 yaspin = "^3.0.2"
-isort = "^5.13.2"
+
+[tool.poetry.group.dev.dependencies]
 autoflake = "^2.3.1"
+isort = "^5.13.2"
+textual-dev = "^1.5.1"
 
 [tool.poetry.scripts]
 pocker = "application.main:cli"

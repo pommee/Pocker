@@ -41,32 +41,28 @@ class DockerManager:
     def attributes(self):
         return self.container(self.selected_container).attrs
 
-    def status(self, container_name: str):
-        is_running = self.container(container_name).attrs.get("State").get("Running")
-
+    def status(self, container: Container):
         status = "[U]"
-        if is_running is True:
+        if container.status == "running":
             status = "running"
-        if not is_running:
+        else:
             status = "down"
+
         return status
 
     def live_container_logs(self, logs: RichLog, stop_event: Event):
         logs.clear()
+        last_fetch = time.time()
+        logs.write(self.logs())
 
         while not stop_event.is_set():
-            if len(logs.lines) == 0:
-                last_fetch = time.time()
-                # If logs are empty, write initial logs
-                logs.write(self.logs())
-
             new_logs = (
                 self.container(self.selected_container)
                 .logs(since=last_fetch)
                 .decode("utf-8")
             )
 
-            if len(new_logs) > 0:
+            if new_logs:
                 last_fetch = time.time()
                 logs.write(new_logs.rstrip())
 

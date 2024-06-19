@@ -10,6 +10,7 @@ CONFIG_PATH = POCKER_CONFIG_BASE_PATH / "config.yaml"
 
 class Config(BaseModel):
     log_tail: int
+    max_log_lines: int
     start_wrap: bool
     start_fullscreen: bool
     start_scroll: bool
@@ -21,9 +22,10 @@ class Config(BaseModel):
 def create_default_config():
     default_config = {
         "log_tail": 2000,
+        "max_log_lines": 2000,
         "start_wrap": False,
         "start_fullscreen": False,
-        "start_scroll": False,
+        "start_scroll": True,
     }
     with open(CONFIG_PATH, "w") as file:
         dump(default_config, file)

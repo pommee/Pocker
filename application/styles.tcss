@@ -10,16 +10,12 @@ PockerContainers {
     border-title-align: center;
     height: 50%;
     border: round;
-    margin: 0;
-    padding: 0;
 }
 
 PockerImages {
     border-title-align: center;
     height: 50%;
     border: round;
-    margin: 0;
-    padding: 0;
 }
 
 VerticalScroll {
@@ -36,6 +32,8 @@ RichLog {
     width: 80%;
     height: 100%;
     scrollbar-size: 1 1;
+
+    border-subtitle-color: white 50%;
 }
 
 Input {
@@ -45,9 +43,8 @@ Input {
     width: 80%;
 }
 
-PockerFooter {
+Footer {
     color: white;
-    height: 1;
     dock: bottom;
 }
 

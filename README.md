@@ -4,14 +4,9 @@
 
 ![image](./resources/image.png)
 
-# Pocker
-
-I found Docker Desktop to be bloated, heavy, slow, resource-hogging and contains features that I rarely ever use.  
-Not to say that it's bad; just not for me.
-
 # 👋🏼 Introduction
 
-Pocker is a lightweight CLI tool to help with docker related tasks. For example,
+Pocker is a TUI tool to help with docker related tasks. For example,
 
 - View containers/images.
 - See logs and attributes.
@@ -33,7 +28,7 @@ pip install pipx
 
 ## 📦 Installation
 
-### Install latest version from remote repository
+### Latest version
 
 ```shell
 pipx install git+https://github.com/pommee/Pocker@main
@@ -58,11 +53,12 @@ Keybinds can be seen in the footer when started or by pressing `?` to display he
 
 ## 🔧 Configuration
 
-Configuration can be done in [config.yaml](https://github.com/pommee/Pocker/blob/main/config.yaml).
+Upon the first startup, a configuration file will be generated and stored at `$HOME/.config/pocker/config.yaml`.
 
 | Key              | Default | Info                                                                                                                                  |
 | ---------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | log_tail         | 2000    | At **startup**, Pocker will fetch `log_tail` amount of container logs.<br> Not recommended to exceed ~3000 as startup will slow down. |
+| max_log_lines    | 2000    | The displayed container logs are shown sequentially, with the oldest log being removed as a new one appears.                          |
 | start_fullscreen | False   | Display container logs in fullscreen mode at startup.                                                                                 |
-| start_scroll     | True    | Automatic scroll when new logs are fetched.                                                                                           |
-| start_wrap       | False   | Wrap logs to fit content window.                                                                                                      |
+| start_scroll     | True    | Automatically scrolls when new logs are fetched.                                                                                      |
+| start_wrap       | False   | When enabled, logs will wrap to fit the content window.                                                                               |

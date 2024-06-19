@@ -7,8 +7,8 @@ from threading import Event, Thread
 import click
 from colorama import Fore, Style
 from docker.models.containers import Container
+from docker.models.images import Image
 from packaging.version import parse
-from rich.segment import Segment
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -41,10 +41,10 @@ from application.helper import (
 )
 
 #### REFERENCES ####
-logs = None
+logs: RichLog
+config: Config
+docker_manager: DockerManager
 log_task_stop_event = Event()
-config: Config = None
-docker_manager: DockerManager = None
 
 logging.basicConfig(
     level="INFO",
@@ -56,7 +56,7 @@ def live_logs_task():
     docker_manager.live_container_logs(logs, log_task_stop_event)
 
 
-def start_log_task():
+def run_log_task():
     global log_task_stop_event
     log_task_stop_event.set()  # Signal any existing task to stop
     log_task_stop_event = Event()  # Create a new stop event for the new task
@@ -93,16 +93,12 @@ class PockerContainers(Widget):
         with self.list_view:
             container: Container
             for container in docker_manager.containers:
-                status = "[U]"
-                if container.status == "running":
-                    status = "running"
-                else:
-                    status = "down"
                 container_name = container.attrs["Names"][0].replace("/", "")
-                listview_container = ListItem(
-                    Label(container_name), id=container_name, classes=status
+                yield ListItem(
+                    Label(container_name),
+                    id=container_name,
+                    classes=docker_manager.status(container),
                 )
-                yield listview_container
         with Horizontal(id="startstopbuttons"):
             yield Button("Start all", id="startAllContainers")
             yield Button("Stop all", id="stopAllContainers")
@@ -137,7 +133,7 @@ class PockerContainers(Widget):
             new_container_list_item.children[0].renderable
         )
         logs.border_title = docker_manager.selected_container
-        start_log_task()
+        run_log_task()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         id = str(event.button.id)
@@ -180,18 +176,16 @@ class PockerImages(Widget):
 
     def compose(self) -> ComposeResult:
         with ListView(id="ContainersAndImagesListView"):
-            image: DockerManager
+            image: Image
             for image in docker_manager.images:
-                repo_tags = image.attrs.get("RepoTags")
-                if len(repo_tags) != 0:
-                    name = repo_tags[0].split(":")[0]
-                    version = repo_tags[0].split(":")[1]
-                    radio_button = ListItem(Label(str(f"{name}:{version}")))
-                    yield radio_button
+                if image.tags:
+                    name = image.tags[0].split(":")[0]
+                    version = image.tags[0].split(":")[1]
+                    yield ListItem(Label(f"{name}:{version}"))
 
+    # TODO: Implement fetching relevant information regarding an image.
     def on_list_view_selected(self, item: ListItem):
-        list_view: ListView = self.query_one(ListView)
-        logs.write(list_view.index)
+        pass
 
 
 class ContentWindow(Widget):
@@ -221,15 +215,8 @@ class ContentWindow(Widget):
         self.indices = indices
 
     @on(Input.Submitted)
-    def input_submitted(self, event: Input.Submitted) -> None:
-        event.stop()
-        keyword = str(event.value)
-        input = self.query_one(Input)
-
-        if len(keyword) == 0:
-            input.border_title = None
-            self.current_index = 0
-            return
+    def input_submitted(self, input=Input(validate_on=["submitted"])) -> None:
+        keyword = input.value
 
         if len(keyword) == 0 or keyword is not self.search_keyword:
             self.current_index = 0
@@ -242,21 +229,18 @@ class ContentWindow(Widget):
 
         if len(self.indices) > 0:
             self.current_index -= 1
-            self.update_input_border(str(self.indices[self.current_index + 1]))
+            self.update_input_border()
             logs.scroll_to(
                 y=self.indices[self.current_index], animate=True, duration=0.2
             )
-            strip: Strip = self.matches[self.current_index]
-            new_segments = [Segment(x.text, style="on yellow") for x in strip._segments]
-            new_strip = Strip(new_segments)
-            logs.lines[self.current_index] = new_strip
         else:
             input.border_title = "No results"
             self.current_index = 0
 
-    def update_input_border(self, line: str):
+    def update_input_border(self):
+        line = str(self.indices[self.current_index + 1])
         input = self.query_one(Input)
-        input.border_title = f"{(self.current_index + 1)}/{len(self.indices) - 1}"
+        input.border_title = f"{self.current_index + 1}/{len(self.indices) - 1}"
         input.border_subtitle = f"line {line}"
 
 
@@ -264,6 +248,7 @@ class UI(App):
     CSS_PATH = "styles.tcss"
     SCREENS = {"helpscreen": HelpScreen()}
     TITLE = "Pocker"
+    MODE = "LOGS"
     BINDINGS = [
         Binding(key="q", action="quit", description="Quit the app"),
         Binding(
@@ -275,12 +260,10 @@ class UI(App):
         Binding(key="l", action="restore_logs", description="Show logs"),
         Binding(key="a", action="attributes", description="Show attributes"),
         Binding(key="f", action="toggle_content_full_screen", description="Fullscreen"),
-        Binding(key="w", action="wrap_text", description="Wrap output to fit all"),
+        Binding(key="w", action="wrap_text", description="Wrap logs"),
         Binding(key="s", action="toggle_auto_scroll", description="Toggle scroll"),
-        Binding(key="/", action="toggle_search_log", description="Search log"),
+        Binding(key="/", action="toggle_search_log", description="Search logs"),
     ]
-
-    MODE = "LOGS"
 
     def compose(self) -> ComposeResult:
         global config, docker_manager
@@ -297,6 +280,11 @@ class UI(App):
 
     async def on_mount(self) -> None:
         self._run_threads()
+        self.set_header()
+        self._look_for_update()
+
+    def read_and_apply_config(self):
+        logs.max_lines = config.max_log_lines
 
         if config.start_fullscreen:
             self.action_toggle_content_full_screen()
@@ -304,8 +292,6 @@ class UI(App):
             self.action_wrap_text()
         if not config.start_scroll:
             self.action_toggle_auto_scroll()
-
-        self._look_for_update()
 
     @work(exclusive=True)
     async def _look_for_update(self):
@@ -329,7 +315,7 @@ class UI(App):
         )
 
     def _run_threads(self):
-        start_log_task()
+        run_log_task()
         statistics_thread = Thread(target=live_statistics_task, daemon=True)
         status_events_thread = Thread(
             target=self.query_one(PockerContainers).live_status_events_task, daemon=True
@@ -338,8 +324,7 @@ class UI(App):
         status_events_thread.start()
 
     def set_header(self):
-        header_state = f"Mode: {self.MODE} ○ Containers: {len(docker_manager.containers)} ○ Wrap: {logs.wrap} ○ Scroll: {logs.auto_scroll}"
-        self.sub_title = header_state
+        self.sub_title = f"Mode: {self.MODE} ○ Containers: {len(docker_manager.containers)} ○ Wrap: {logs.wrap} ○ Scroll: {logs.auto_scroll}"
 
     def on_key(self, event: Input.Submitted) -> None:
         key = str(event.name)
