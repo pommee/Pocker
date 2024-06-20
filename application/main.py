@@ -28,10 +28,10 @@ from textual.widgets import (
 )
 from yaspin import yaspin
 
-from application.config import Config, load_config
+from application.util.config import Config, load_config
 from application.docker_manager import DockerManager
-from application.help import HelpScreen
-from application.helper import (
+from application.util.help import HelpScreen
+from application.util.helper import (
     get_current_version,
     get_latest_version,
     read_changelog,

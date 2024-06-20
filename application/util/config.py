@@ -3,7 +3,7 @@ import os
 from pydantic import BaseModel
 from yaml import dump, safe_load
 
-from application.helper import POCKER_CONFIG_BASE_PATH
+from application.util.helper import POCKER_CONFIG_BASE_PATH
 
 CONFIG_PATH = POCKER_CONFIG_BASE_PATH / "config.yaml"
 

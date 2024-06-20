@@ -8,7 +8,7 @@ from textual.containers import Center, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Footer, Markdown, Static
 
-from application.helper import POCKER_CONFIG_BASE_PATH, get_current_version
+from application.util.helper import POCKER_CONFIG_BASE_PATH, get_current_version
 
 HELP_MD = """
 Pocker is a tool for the terminal to do Docker related tasks.

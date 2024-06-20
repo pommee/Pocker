@@ -1,6 +1,6 @@
 import logging
 import time
-from threading import Event
+from threading import Event, Thread
 
 import docker
 from docker.models.containers import Container, ContainerCollection
@@ -8,7 +8,7 @@ from docker.models.images import ImageCollection
 from textual.logging import TextualHandler
 from textual.widgets import RichLog
 
-from application.config import Config
+from application.util.config import Config
 
 logging.basicConfig(
     level="INFO",
@@ -25,6 +25,7 @@ class DockerManager:
         self.images: ImageCollection = self.client.images.list(all=True)
         self.selected_container = self.containers[0].attrs["Names"][0].replace("/", "")
         self.config = config
+        log_task_stop_event = Event()
 
     def container(self, container_name: str) -> Container:
         return self.client.containers.get(container_name)
@@ -67,3 +68,12 @@ class DockerManager:
                 logs.write(new_logs.rstrip())
 
             time.sleep(1)
+
+    def run_log_task(self):
+        global log_task_stop_event
+        log_task_stop_event.set()  # Signal any existing task to stop
+        log_task_stop_event = Event()  # Create a new stop event for the new task
+        Thread(target=self.live_logs_task, daemon=True).start()
+
+    def live_logs_task(self, logs):
+        self.live_container_logs(logs, log_task_stop_event)
