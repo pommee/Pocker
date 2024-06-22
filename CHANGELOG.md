@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/pommee/Pocker/compare/v1.3.6...v1.4.0) (2024-06-22)
+
+
+### Features
+
+* added view tabs ([1d0b029](https://github.com/pommee/Pocker/commit/1d0b029af937714f4695f4c8a83c2be461ad67e6))
+
 ## [1.3.6](https://github.com/pommee/Pocker/compare/v1.3.5...v1.3.6) (2024-06-19)
 
 
