@@ -1,8 +1,7 @@
 <p align="center">
   <img src="./resources/pocker-name.png" />
+  <img src="./resources/home-preview.png" />
 </p>
-
-![image](./resources/image.png)
 
 # 👋🏼 Introduction
 

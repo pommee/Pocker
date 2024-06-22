@@ -1,6 +1,6 @@
 import logging
 import time
-from threading import Event, Thread
+from threading import Event
 
 import docker
 from docker.models.containers import Container, ContainerCollection

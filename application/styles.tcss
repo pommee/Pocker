@@ -83,6 +83,7 @@ RichLog {
 
 Input {
     display: none;
+    border: round cornflowerblue;
     background: transparent;
     width: 80%;
 }
