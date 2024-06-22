@@ -4,7 +4,7 @@ from threading import Event, Thread
 
 import docker
 from docker.models.containers import Container, ContainerCollection
-from docker.models.images import ImageCollection
+from docker.models.images import Image, ImageCollection
 from textual.logging import TextualHandler
 from textual.widgets import RichLog
 
@@ -25,22 +25,31 @@ class DockerManager:
         self.images: ImageCollection = self.client.images.list(all=True)
         self.selected_container = self.containers[0].attrs["Names"][0].replace("/", "")
         self.config = config
-        log_task_stop_event = Event()
 
     def container(self, container_name: str) -> Container:
         return self.client.containers.get(container_name)
 
-    def curr_container(self):
+    @property
+    def current_container(self):
         return self.container(self.selected_container)
 
+    @property
+    def attributes(self) -> Container:
+        return self.current_container.attrs
+
+    @property
+    def environment(self) -> dict:
+        return self.current_container.attrs.get("Config").get("Env")
+
+    @property
+    def statistics(self) -> Image:
+        return self.current_container.stats(stream=False)
+
     def logs(self):
-        logs: bytes = self.curr_container().logs(
+        logs: bytes = self.current_container.logs(
             tail=self.config.log_tail, follow=False, stream=False
         )
         return logs.decode("utf-8").strip()
-
-    def attributes(self):
-        return self.container(self.selected_container).attrs
 
     def status(self, container: Container):
         status = "[U]"
@@ -68,12 +77,3 @@ class DockerManager:
                 logs.write(new_logs.rstrip())
 
             time.sleep(1)
-
-    def run_log_task(self):
-        global log_task_stop_event
-        log_task_stop_event.set()  # Signal any existing task to stop
-        log_task_stop_event = Event()  # Create a new stop event for the new task
-        Thread(target=self.live_logs_task, daemon=True).start()
-
-    def live_logs_task(self, logs):
-        self.live_container_logs(logs, log_task_stop_event)

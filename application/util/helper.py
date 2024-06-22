@@ -60,9 +60,9 @@ def write_latest_version_fetch(version):
 
 
 def read_latest_version_fetch():
-    if not os.path.exists("latest_version_fetch.yaml"):
-        current_version = version_parse(get_current_version())
-        write_latest_version_fetch(current_version.base_version)
+    if not os.path.exists(POCKER_CONFIG_BASE_PATH / "latest_version_fetch.yaml"):
+        latest_version = get_latest_version()
+        write_latest_version_fetch(latest_version.base_version)
     with open(POCKER_CONFIG_BASE_PATH / "latest_version_fetch.yaml", "r") as file:
         fetch_dict = yaml.safe_load(file)
         return Version_Fetch(**fetch_dict)

@@ -2,20 +2,54 @@ Screen {
     layout: horizontal;
 }
 
+TopBar {
+    dock: top;
+    background: $primary;
+    height: 1;
+    layout: horizontal;
+
+    #topbar_title {
+        width: 15%;
+        content-align: left middle;
+    }
+    #topbar_statuses {
+        width: 70%;
+        content-align: center middle;
+    }
+    #topbar_help {
+        width: 15%;
+        content-align: right middle;
+        color: gray;
+    }
+}
+
 #containers-and-images {
     width: 20%;
+    margin: 1;
+}
+
+.containers-and-images-header {
+    margin-bottom: 1;
+    width: auto;
+    align: center middle;
+    text-style: bold;
 }
 
 PockerContainers {
     border-title-align: center;
     height: 50%;
-    border: round;
+    border: none;
+}
+
+Rule {
+    margin: 0;
+    padding: 0;
 }
 
 PockerImages {
     border-title-align: center;
     height: 50%;
-    border: round;
+    border: none;
 }
 
 VerticalScroll {
@@ -27,18 +61,28 @@ ListItem {
     background: transparent;
 }
 
+ContentWindow {
+    width: 99%;
+    border: none;
+}
+
+TabbedContent {
+    width: 80%;
+    background: transparent;
+}
+
+TabPane {
+    padding: 0;
+}
+
 RichLog {
     border: round cornflowerblue;
-    width: 80%;
-    height: 100%;
     scrollbar-size: 1 1;
-
     border-subtitle-color: white 50%;
 }
 
 Input {
     display: none;
-    border: round cornflowerblue;
     background: transparent;
     width: 80%;
 }
@@ -52,6 +96,7 @@ Button {
     height: 1;
     margin: 0 1 0 0;
     border: none;
+    width: 50%;
 }
 
 #startstopbuttons {

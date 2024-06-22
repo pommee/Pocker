@@ -1,10 +1,10 @@
-import json
 import logging
 import re
 import subprocess
 from threading import Event, Thread
 
 import click
+import yaml
 from colorama import Fore, Style
 from docker.models.containers import Container
 from docker.models.images import Image
@@ -19,17 +19,20 @@ from textual.widget import Widget
 from textual.widgets import (
     Button,
     Footer,
-    Header,
     Input,
     Label,
     ListItem,
     ListView,
     RichLog,
+    Rule,
+    Static,
+    TabbedContent,
+    TabPane,
 )
 from yaspin import yaspin
 
-from application.util.config import Config, load_config
 from application.docker_manager import DockerManager
+from application.util.config import Config, load_config
 from application.util.help import HelpScreen
 from application.util.helper import (
     get_current_version,
@@ -39,6 +42,7 @@ from application.util.helper import (
     time_since_last_fetch,
     write_latest_version_fetch,
 )
+from application.widget.topbar import TopBar
 
 #### REFERENCES ####
 logs: RichLog
@@ -90,6 +94,7 @@ class PockerContainers(Widget):
     def compose(self) -> ComposeResult:
         self.list_view = ListView(id="ContainersAndImagesListView")
 
+        yield Static("Containers", classes="containers-and-images-header")
         with self.list_view:
             container: Container
             for container in docker_manager.containers:
@@ -175,6 +180,7 @@ class PockerImages(Widget):
     BORDER_TITLE: str = "Images"
 
     def compose(self) -> ComposeResult:
+        yield Static("Images", classes="containers-and-images-header")
         with ListView(id="ContainersAndImagesListView"):
             image: Image
             for image in docker_manager.images:
@@ -198,10 +204,42 @@ class ContentWindow(Widget):
         global logs
 
         yield Input(placeholder="Search logs...", type="text")
-        logs = RichLog(highlight=True, auto_scroll=True, name="Log")
-        logs.border_title = docker_manager.selected_container
-        logs.scroll_end(animate=False)
-        yield logs
+        with TabbedContent():
+            with TabPane("Logs", id="logpane"):
+                logs = RichLog(id="logs", highlight=True, auto_scroll=True, name="Log")
+                logs.border_title = docker_manager.selected_container
+                logs.scroll_end(animate=False)
+                yield logs
+            with TabPane("Attributes", id="attributespane"):
+                attributes = RichLog(
+                    id="attributes_log",
+                    highlight=True,
+                    auto_scroll=True,
+                    name="Attributes",
+                )
+                attributes.border_title = docker_manager.selected_container
+                attributes.scroll_end(animate=False)
+                yield attributes
+            with TabPane("Environment", id="environmentpane"):
+                environment = RichLog(
+                    id="environment_log",
+                    highlight=True,
+                    auto_scroll=True,
+                    name="Environment",
+                )
+                environment.border_title = docker_manager.selected_container
+                environment.scroll_end(animate=False)
+                yield environment
+            with TabPane("Statistics", id="statisticspane"):
+                statistics = RichLog(
+                    id="statistics_log",
+                    highlight=True,
+                    auto_scroll=True,
+                    name="Statistics",
+                )
+                statistics.border_title = docker_manager.selected_container
+                statistics.scroll_end(animate=False)
+                yield statistics
 
     def search_logs(self, pattern):
         matches = []
@@ -248,21 +286,20 @@ class UI(App):
     CSS_PATH = "styles.tcss"
     SCREENS = {"helpscreen": HelpScreen()}
     TITLE = "Pocker"
-    MODE = "LOGS"
     BINDINGS = [
-        Binding(key="q", action="quit", description="Quit the app"),
+        Binding(key="q", action="quit", description="Quit"),
         Binding(
             key="question_mark",
             action="push_screen('helpscreen')",
-            description="Show help screen",
-            key_display="?",
         ),
-        Binding(key="l", action="restore_logs", description="Show logs"),
-        Binding(key="a", action="attributes", description="Show attributes"),
+        Binding(key="l", action="restore_logs", description="Logs"),
+        Binding(key="a", action="attributes", description="Attributes"),
+        Binding(key="e", action="environment", description="Environment"),
+        Binding(key="d", action="statistics", description="Stats"),
         Binding(key="f", action="toggle_content_full_screen", description="Fullscreen"),
         Binding(key="w", action="wrap_text", description="Wrap logs"),
         Binding(key="s", action="toggle_auto_scroll", description="Toggle scroll"),
-        Binding(key="/", action="toggle_search_log", description="Search logs"),
+        Binding(key="/", action="toggle_search_log", description="Search"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -271,16 +308,17 @@ class UI(App):
         config = load_config()
         docker_manager = DockerManager(config)
 
-        yield Header()
+        yield TopBar(get_current_version())
         with Vertical(id="containers-and-images"):
             yield PockerContainers(id="PockerContainers")
+            yield Rule("horizontal")
             yield PockerImages(id="PockerImages")
         yield ContentWindow(id="ContentWindow")
         yield Footer()
 
     async def on_mount(self) -> None:
         self._run_threads()
-        self.set_header()
+        self.set_header_statuses()
         self._look_for_update()
 
     def read_and_apply_config(self):
@@ -296,9 +334,10 @@ class UI(App):
     @work(exclusive=True)
     async def _look_for_update(self):
         current_version = parse(get_current_version())
-        last_fetch = read_latest_version_fetch()
+        last_fetch = parse(read_latest_version_fetch().version_fetched)
 
-        if parse(last_fetch.version_fetched) > current_version:
+        if last_fetch > current_version:
+            self.set_header_new_version_available(last_fetch)
             # Fetch latest version if more than 20 minutes ago.
             if time_since_last_fetch() > 20:
                 latest_version = get_latest_version()
@@ -310,7 +349,7 @@ class UI(App):
     def _show_update_notification(self, current_version, latest_version):
         self.notify(
             title=f"New version available! v{current_version} -> v{latest_version}",
-            message=f"Update by running: 'pocker update",
+            message=f"Update by running: 'pocker update'",
             timeout=6,
         )
 
@@ -323,8 +362,15 @@ class UI(App):
         statistics_thread.start()
         status_events_thread.start()
 
-    def set_header(self):
-        self.sub_title = f"Mode: {self.MODE} ○ Containers: {len(docker_manager.containers)} ○ Wrap: {logs.wrap} ○ Scroll: {logs.auto_scroll}"
+    def set_header_statuses(self):
+        self.query_one("#topbar_statuses").update(
+            f"Wrap [{logs.wrap}]    Scroll [{logs.auto_scroll}]"
+        )
+
+    def set_header_new_version_available(self, new_version):
+        self.query_one("#topbar_title").update(
+            f" Pocker [b green]v{new_version} Available![/b green]"
+        )
 
     def on_key(self, event: Input.Submitted) -> None:
         key = str(event.name)
@@ -334,34 +380,61 @@ class UI(App):
         except:
             pass
 
-    def action_logs(self):
-        self.MODE = "logs"
-        logs.clear()
-        logs.write(docker_manager.logs())
-        self.set_header()
-
-    def action_attributes(self):
-        self.MODE = "attributes"
-        logs.clear()
-        logs.write(json.dumps(docker_manager.attributes(), indent=2))
-        self.set_header()
+    @on(TabbedContent.TabActivated)
+    def action_show_tab(self, tab: TabbedContent.TabActivated) -> None:
+        selected_tab = tab.tab.id.replace("--content-tab-", "")
+        match selected_tab:
+            case "logpane":
+                self.action_restore_logs()
+            case "attributespane":
+                self.action_attributes()
+            case "imagepane":
+                self.action_image()
+            case "statisticspane":
+                self.action_statistics()
 
     def action_restore_logs(self):
+        self.query_one(TabbedContent).active = "logpane"
         logs.clear()
         logs.write(docker_manager.logs())
+        self.set_header_statuses()
+
+    def action_attributes(self):
+        self.query_one(TabbedContent).active = "attributespane"
+        attributes_log: RichLog = self.query_one("#attributes_log")
+        attributes_log.clear()
+        attributes_log.write(yaml.dump(docker_manager.attributes, indent=2))
+        self.set_header_statuses()
+
+    def action_environment(self):
+        self.query_one(TabbedContent).active = "environmentpane"
+        environment_log: RichLog = self.query_one("#environment_log")
+        environment_log.clear()
+        for entry in docker_manager.environment:
+            key = entry.split("=")[0]
+            value = entry.split("=")[1]
+            environment_log.write(f"{key}: {value}")
+        self.set_header_statuses()
+
+    def action_statistics(self):
+        self.query_one(TabbedContent).active = "statisticspane"
+        statistics_log: RichLog = self.query_one("#statistics_log")
+        statistics_log.clear()
+        statistics_log.write(yaml.dump(docker_manager.statistics, indent=2))
+        self.set_header_statuses()
 
     def action_wrap_text(self):
         if logs.wrap == True:
             logs.wrap = False
         else:
             logs.wrap = True
-        self.set_header()
+        self.set_header_statuses()
         logs.clear()
         logs.write(docker_manager.logs())
 
     def action_toggle_content_full_screen(self):
-        rich_log = self.query_one(RichLog)
-        containers_and_images = self.query_one(Vertical)
+        tabbed_content = self.query_one(TabbedContent)
+        containers_and_images = self.query_one("#containers-and-images")
         search_window = self.query_one(Input)
 
         containers_and_images_styling = self.query_one(
@@ -370,26 +443,24 @@ class UI(App):
         if containers_and_images_styling == "block":
             containers_and_images.styles.display = "none"
             self.query_one(ContentWindow).styles.width = "100%"
-            rich_log.styles.width = "100%"
-            rich_log.styles.border = ("blank", "transparent")
+            tabbed_content.styles.width = "100%"
             search_window.styles.width = "100%"
         else:
             containers_and_images.styles.display = "block"
-            rich_log.styles.width = "80%"
-            rich_log.styles.border = ("round", "cornflowerblue")
+            tabbed_content.styles.width = "80%"
             search_window.styles.width = "80%"
-        self.set_header()
+        self.set_header_statuses()
 
     def action_toggle_auto_scroll(self):
         if logs.auto_scroll:
             logs.auto_scroll = False
         else:
             logs.auto_scroll = True
-        self.set_header()
+        self.set_header_statuses()
 
     def action_toggle_search_log(self):
         search_logs_input = self.query_one(Input)
-        content_window = self.query_one(RichLog)
+        content_window = self.query_one(TabbedContent)
 
         if search_logs_input.styles.display == "block":
             search_logs_input.styles.display = "none"
