@@ -11,7 +11,7 @@ class TopBar(Container):
         super().__init__()
 
         self.topbar_title = Label(
-            f" Pocker v{app_version}",
+            f" [b]Pocker[/b] v{app_version}",
             id="topbar_title",
         )
         self.topbar_statuses = Label(statuses, id="topbar_statuses")
