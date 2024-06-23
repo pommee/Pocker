@@ -416,8 +416,8 @@ class UI(App):
                 self.action_restore_logs()
             case "attributespane":
                 self.action_attributes()
-            case "imagepane":
-                self.action_image()
+            case "environmentpane":
+                self.action_environment()
             case "statisticspane":
                 self.action_statistics()
 
