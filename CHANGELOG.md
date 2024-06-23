@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/pommee/Pocker/compare/v1.5.0...v1.5.1) (2024-06-23)
+
+
+### Bug Fixes
+
+* bug where clicking env tab did not display ([9590eea](https://github.com/pommee/Pocker/commit/9590eea1263312a4ef5b2c6f3d4ef16473ad0774))
+
 # [1.5.0](https://github.com/pommee/Pocker/compare/v1.4.0...v1.5.0) (2024-06-23)
 
 
