@@ -61,3 +61,18 @@ Upon the first startup, a configuration file will be generated and stored at `$H
 | start_fullscreen | False   | Display container logs in fullscreen mode at startup.                                                                                 |
 | start_scroll     | True    | Automatically scrolls when new logs are fetched.                                                                                      |
 | start_wrap       | False   | When enabled, logs will wrap to fit the content window.                                                                               |
+
+### Keymap [default]
+
+| Key | Action        | Description                                                     |
+| --- | ------------- | --------------------------------------------------------------- |
+| `q` | Quit          | Exits the application.                                          |
+| `l` | Logs          | Opens the logs view to display log entries.                     |
+| `a` | Attributes    | Displays the attributes panel, showing various item attributes. |
+| `e` | Environment   | Opens the environment settings view.                            |
+| `d` | Statistics    | Shows statistical information related to the container.         |
+| `f` | Fullscreen    | Toggles fullscreen mode for the logs view.                      |
+| `w` | Wrap Logs     | Toggles log wrapping in the logs view.                          |
+| `s` | Toggle Scroll | Toggles scrolling mode for the current view.                    |
+
+This table helps you understand the functionalities assigned to each key, making navigation and operation more efficient.

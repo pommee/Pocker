@@ -14,6 +14,7 @@ class Config(BaseModel):
     start_wrap: bool
     start_fullscreen: bool
     start_scroll: bool
+    keymap: dict[str, str]
 
     def __repr__(self) -> str:
         return super().__repr__(self.start_wrap)
@@ -26,6 +27,16 @@ def create_default_config():
         "start_wrap": False,
         "start_fullscreen": False,
         "start_scroll": True,
+        "keymap": {
+            "quit": "q",
+            "logs": "l",
+            "attributes": "a",
+            "environment": "e",
+            "statistics": "d",
+            "fullscreen": "f",
+            "wrap-logs": "w",
+            "toggle-scroll": "s",
+        },
     }
     with open(CONFIG_PATH, "w") as file:
         dump(default_config, file)

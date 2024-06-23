@@ -32,7 +32,7 @@ from textual.widgets import (
 from yaspin import yaspin
 
 from application.docker_manager import DockerManager
-from application.util.config import Config, load_config
+from application.util.config import load_config
 from application.util.help import HelpScreen
 from application.util.helper import (
     get_current_version,
@@ -46,7 +46,6 @@ from application.widget.topbar import TopBar
 
 #### REFERENCES ####
 logs: RichLog
-config: Config
 docker_manager: DockerManager
 log_task_stop_event = Event()
 
@@ -283,30 +282,59 @@ class ContentWindow(Widget):
 
 
 class UI(App):
+
     CSS_PATH = "styles.tcss"
     SCREENS = {"helpscreen": HelpScreen()}
     TITLE = "Pocker"
     BINDINGS = [
-        Binding(key="q", action="quit", description="Quit"),
         Binding(
             key="question_mark",
             action="push_screen('helpscreen')",
         ),
-        Binding(key="l", action="restore_logs", description="Logs"),
-        Binding(key="a", action="attributes", description="Attributes"),
-        Binding(key="e", action="environment", description="Environment"),
-        Binding(key="d", action="statistics", description="Stats"),
-        Binding(key="f", action="toggle_content_full_screen", description="Fullscreen"),
-        Binding(key="w", action="wrap_text", description="Wrap logs"),
-        Binding(key="s", action="toggle_auto_scroll", description="Toggle scroll"),
         Binding(key="/", action="toggle_search_log", description="Search"),
     ]
 
-    def compose(self) -> ComposeResult:
-        global config, docker_manager
+    def set_bindings_from_config_keymap(self) -> None:
+        keymap = load_config().keymap
+        self.bind(keymap.get("quit"), "quit", description="Quit")
+        self.bind(keymap.get("logs"), "restore_logs", description="Logs")
+        self.bind(
+            keymap.get("attributes"),
+            "attributes",
+            description="Attributes",
+        )
+        self.bind(
+            keymap.get("environment"),
+            "environment",
+            description="Environment",
+        )
+        self.bind(
+            keymap.get("statistics"),
+            "statistics",
+            description="Statistics",
+        )
+        self.bind(
+            keymap.get("fullscreen"),
+            "toggle_content_full_screen",
+            description="Fullscreen",
+        )
+        self.bind(
+            keymap.get("wrap-logs"),
+            "wrap_text",
+            description="Wrap logs",
+        )
+        self.bind(
+            keymap.get("toggle-scroll"),
+            "toggle_auto_scroll",
+            description="Wrap logs",
+        )
 
-        config = load_config()
-        docker_manager = DockerManager(config)
+    def compose(self) -> ComposeResult:
+        global docker_manager
+
+        self.config = load_config()
+        docker_manager = DockerManager(self.config)
+        self.set_bindings_from_config_keymap()
 
         yield TopBar(get_current_version())
         with Vertical(id="containers-and-images"):
@@ -322,13 +350,13 @@ class UI(App):
         self._look_for_update()
 
     def read_and_apply_config(self):
-        logs.max_lines = config.max_log_lines
+        logs.max_lines = self.config.max_log_lines
 
-        if config.start_fullscreen:
+        if self.config.start_fullscreen:
             self.action_toggle_content_full_screen()
-        if config.start_wrap:
+        if self.config.start_wrap:
             self.action_wrap_text()
-        if not config.start_scroll:
+        if not self.config.start_scroll:
             self.action_toggle_auto_scroll()
 
     @work(exclusive=True)
@@ -447,8 +475,8 @@ class UI(App):
             search_window.styles.width = "100%"
         else:
             containers_and_images.styles.display = "block"
-            tabbed_content.styles.width = "80%"
-            search_window.styles.width = "80%"
+            tabbed_content.styles.width = "79%"
+            search_window.styles.width = "79%"
         self.set_header_statuses()
 
     def action_toggle_auto_scroll(self):
