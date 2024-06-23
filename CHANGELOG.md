@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/pommee/Pocker/compare/v1.6.0...v1.6.1) (2024-06-23)
+
+
+### Bug Fixes
+
+* ensure config directory exists when creating config file ([7951248](https://github.com/pommee/Pocker/commit/7951248fb328f6dddd28df0c255fb7d26293d2f5))
+
 # [1.6.0](https://github.com/pommee/Pocker/compare/v1.5.1...v1.6.0) (2024-06-23)
 
 
