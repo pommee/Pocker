@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/pommee/Pocker/compare/v1.4.0...v1.5.0) (2024-06-23)
+
+
+### Features
+
+* added custom keybinds to config ([e7f640f](https://github.com/pommee/Pocker/commit/e7f640f78625cee724181c3e0f18c0ecaedfd177))
+
 # [1.4.0](https://github.com/pommee/Pocker/compare/v1.3.6...v1.4.0) (2024-06-22)
 
 
