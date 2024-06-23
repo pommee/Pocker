@@ -88,6 +88,15 @@ Input {
     width: 80%;
 }
 
+#shell-output {
+    border: wide gray;
+}
+
+#shell-input {
+    width: 100%;
+    display: block;
+}
+
 Footer {
     color: white;
     dock: bottom;

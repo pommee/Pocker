@@ -1,4 +1,6 @@
 import logging
+import os
+import pty
 import re
 import subprocess
 from threading import Event, Thread
@@ -9,6 +11,7 @@ from colorama import Fore, Style
 from docker.models.containers import Container
 from docker.models.images import Image
 from packaging.version import parse
+from rich.text import Text
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -18,6 +21,7 @@ from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import (
     Button,
+    ContentSwitcher,
     Footer,
     Input,
     Label,
@@ -32,7 +36,7 @@ from textual.widgets import (
 from yaspin import yaspin
 
 from application.docker_manager import DockerManager
-from application.util.config import load_config
+from application.util.config import CONFIG_PATH, load_config
 from application.util.help import HelpScreen
 from application.util.helper import (
     get_current_version,
@@ -88,7 +92,6 @@ def live_statistics_task():
 
 class PockerContainers(Widget):
     BORDER_TITLE: str = "Containers"
-    current_index = 0
 
     def compose(self) -> ComposeResult:
         self.list_view = ListView(id="ContainersAndImagesListView")
@@ -113,31 +116,6 @@ class PockerContainers(Widget):
             key=lambda listview_container: listview_container.has_class("running"),
             reverse=True,
         )
-
-    def on_list_view_selected(self):
-        old_index = self.current_index
-        new_index = self.list_view.index
-        self.set_list_item_background(old_index, new_index)
-
-    def set_list_item_background(self, old_index: int, new_index: int):
-        old_container_list_item: ListItem = self.list_view.children[old_index]
-        new_container_list_item: ListItem = self.list_view.children[new_index]
-
-        deselect_classes = frozenset(
-            set(old_container_list_item.classes) - {"selected"}
-        )
-        select_classes = frozenset(set(new_container_list_item.classes) | {"selected"})
-
-        new_container_list_item.classes = select_classes
-        old_container_list_item.classes = deselect_classes
-
-        self.current_index = self.list_view.index
-
-        docker_manager.selected_container = str(
-            new_container_list_item.children[0].renderable
-        )
-        logs.border_title = docker_manager.selected_container
-        run_log_task()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         id = str(event.button.id)
@@ -193,6 +171,54 @@ class PockerImages(Widget):
         pass
 
 
+class ShellPane(TabPane):
+    def compose(self) -> ComposeResult:
+        yield RichLog(
+            id="shell-output",
+            highlight=True,
+            auto_scroll=True,
+            name="ShellPaneLog",
+        )
+        yield Input(placeholder="Enter command...", id="shell-input")
+
+    def run_shell(self) -> None:
+        self.container = docker_manager.current_container
+        self.output_widget = self.query_one("#shell-output", RichLog)
+        self.input_widget = self.query_one("#shell-input", Input)
+
+        self.master_fd, slave_fd = pty.openpty()
+        self.process = subprocess.Popen(
+            ["docker", "exec", "-it", self.container.id, "bash"],
+            stdin=slave_fd,
+            stdout=slave_fd,
+            stderr=slave_fd,
+            universal_newlines=True,
+            preexec_fn=os.setsid,
+        )
+
+        def read_output(fd):
+            while True:
+                output = os.read(fd, 16384).decode()
+                self.app.call_from_thread(self.write_output, output)
+
+        self.read_thread = Thread(target=read_output, args=(self.master_fd,))
+        self.read_thread.daemon = True
+        self.read_thread.start()
+
+    def write_output(self, output: str) -> None:
+        self.output_widget.write(Text.from_ansi(output))
+
+    async def on_input_submitted(self, message: Input.Submitted) -> None:
+        command = message.value
+
+        self.send_command(command)
+        self.input_widget.value = ""
+
+    def send_command(self, command: str) -> None:
+        if self.process:
+            os.write(self.master_fd, (command + "\n").encode())
+
+
 class ContentWindow(Widget):
 
     current_index = 0
@@ -202,7 +228,7 @@ class ContentWindow(Widget):
     def compose(self) -> ComposeResult:
         global logs
 
-        yield Input(placeholder="Search logs...", type="text")
+        yield Input(id="search_log_input", placeholder="Search logs...", type="text")
         with TabbedContent():
             with TabPane("Logs", id="logpane"):
                 logs = RichLog(id="logs", highlight=True, auto_scroll=True, name="Log")
@@ -239,6 +265,7 @@ class ContentWindow(Widget):
                 statistics.border_title = docker_manager.selected_container
                 statistics.scroll_end(animate=False)
                 yield statistics
+            yield ShellPane("Shell", id="shellpane")
 
     def search_logs(self, pattern):
         matches = []
@@ -276,7 +303,7 @@ class ContentWindow(Widget):
 
     def update_input_border(self):
         line = str(self.indices[self.current_index + 1])
-        input = self.query_one(Input)
+        input = self.query_one("#search_log_input")
         input.border_title = f"{self.current_index + 1}/{len(self.indices) - 1}"
         input.border_subtitle = f"line {line}"
 
@@ -293,41 +320,54 @@ class UI(App):
         ),
         Binding(key="/", action="toggle_search_log", description="Search"),
     ]
+    current_index = 0
 
     def set_bindings_from_config_keymap(self) -> None:
         keymap = load_config().keymap
-        self.bind(keymap.get("quit"), "quit", description="Quit")
-        self.bind(keymap.get("logs"), "restore_logs", description="Logs")
-        self.bind(
+        self.set_keybind(keymap.get("quit"), "quit", description="Quit")
+        self.set_keybind(keymap.get("logs"), "restore_logs", description="Logs")
+        self.set_keybind(
             keymap.get("attributes"),
             "attributes",
             description="Attributes",
         )
-        self.bind(
+        self.set_keybind(
             keymap.get("environment"),
             "environment",
             description="Environment",
         )
-        self.bind(
+        self.set_keybind(
             keymap.get("statistics"),
             "statistics",
             description="Statistics",
         )
-        self.bind(
+        self.set_keybind(
+            keymap.get("shell"),
+            "shell",
+            description="Shell",
+        )
+        self.set_keybind(
             keymap.get("fullscreen"),
             "toggle_content_full_screen",
             description="Fullscreen",
         )
-        self.bind(
+        self.set_keybind(
             keymap.get("wrap-logs"),
             "wrap_text",
             description="Wrap logs",
         )
-        self.bind(
+        self.set_keybind(
             keymap.get("toggle-scroll"),
             "toggle_auto_scroll",
             description="Wrap logs",
         )
+
+    def set_keybind(self, key: str, action: str, description: str):
+        try:
+            self.bind(key, action, description=description)
+        except AttributeError:
+            self._show_keybind_error(description)
+            self.bind("<Error>", action, description=description)
 
     def compose(self) -> ComposeResult:
         global docker_manager
@@ -348,6 +388,9 @@ class UI(App):
         self._run_threads()
         self.set_header_statuses()
         self._look_for_update()
+        self.list_view = self.query_one(PockerContainers).query_one(
+            "#ContainersAndImagesListView"
+        )
 
     def read_and_apply_config(self):
         logs.max_lines = self.config.max_log_lines
@@ -381,6 +424,14 @@ class UI(App):
             timeout=6,
         )
 
+    def _show_keybind_error(self, description: str):
+        self.notify(
+            title=f"Keybind error",
+            message=f"Could not bind key for {description}\nKeymap can be found in config [b]{CONFIG_PATH}[/b]",
+            severity="warning",
+            timeout=6,
+        )
+
     def _run_threads(self):
         run_log_task()
         statistics_thread = Thread(target=live_statistics_task, daemon=True)
@@ -408,6 +459,41 @@ class UI(App):
         except:
             pass
 
+    def on_list_view_selected(self):
+        def _update_tab_content(self, tab_id: str):
+            match tab_id:
+                case "logpane":
+                    self.action_restore_logs()
+                case "attributespane":
+                    self.action_attributes()
+                case "environmentpane":
+                    self.action_environment()
+                case "statisticspane":
+                    self.action_statistics()
+                case "shellpane":
+                    self.action_shell()
+
+        old_index = self.current_index
+        new_index = self.list_view.index
+
+        docker_manager.selected_container = self.list_view.children[new_index].id
+        self.set_list_item_background(old_index, new_index)
+        run_log_task()
+
+        current_tab = self.query_one(ContentSwitcher).current
+        _update_tab_content(self, current_tab)
+
+    def set_list_item_background(self, old_index: int, new_index: int):
+        old_item = self.list_view.children[old_index]
+        new_item = self.list_view.children[new_index]
+
+        old_item.classes -= {"selected"}
+        new_item.classes |= {"selected"}
+
+        self.current_index = new_index
+        docker_manager.selected_container = str(new_item.children[0].renderable)
+        logs.border_title = docker_manager.selected_container
+
     @on(TabbedContent.TabActivated)
     def action_show_tab(self, tab: TabbedContent.TabActivated) -> None:
         selected_tab = tab.tab.id.replace("--content-tab-", "")
@@ -420,6 +506,8 @@ class UI(App):
                 self.action_environment()
             case "statisticspane":
                 self.action_statistics()
+            case "shellpane":
+                self.action_shell()
 
     def action_restore_logs(self):
         self.query_one(TabbedContent).active = "logpane"
@@ -431,6 +519,7 @@ class UI(App):
         self.query_one(TabbedContent).active = "attributespane"
         attributes_log: RichLog = self.query_one("#attributes_log")
         attributes_log.clear()
+        attributes_log.border_title = docker_manager.selected_container
         attributes_log.write(yaml.dump(docker_manager.attributes, indent=2))
         self.set_header_statuses()
 
@@ -438,6 +527,7 @@ class UI(App):
         self.query_one(TabbedContent).active = "environmentpane"
         environment_log: RichLog = self.query_one("#environment_log")
         environment_log.clear()
+        environment_log.border_title = docker_manager.selected_container
         for entry in docker_manager.environment:
             key = entry.split("=")[0]
             value = entry.split("=")[1]
@@ -448,8 +538,17 @@ class UI(App):
         self.query_one(TabbedContent).active = "statisticspane"
         statistics_log: RichLog = self.query_one("#statistics_log")
         statistics_log.clear()
+        statistics_log.border_title = docker_manager.selected_container
         statistics_log.write(yaml.dump(docker_manager.statistics, indent=2))
         self.set_header_statuses()
+
+    def action_shell(self):
+        self.query_one(TabbedContent).active = "shellpane"
+        shell_log: RichLog = self.query_one("#shell-output")
+        shell_log.clear()
+        self.query_one(ShellPane).run_shell()
+        shell_log.border_title = docker_manager.selected_container
+        self.query_one("#shell-input", Input).focus()
 
     def action_wrap_text(self):
         if logs.wrap == True:
@@ -463,7 +562,7 @@ class UI(App):
     def action_toggle_content_full_screen(self):
         tabbed_content = self.query_one(TabbedContent)
         containers_and_images = self.query_one("#containers-and-images")
-        search_window = self.query_one(Input)
+        search_window = self.query_one("#search_log_input")
 
         containers_and_images_styling = self.query_one(
             "#containers-and-images"
@@ -487,7 +586,7 @@ class UI(App):
         self.set_header_statuses()
 
     def action_toggle_search_log(self):
-        search_logs_input = self.query_one(Input)
+        search_logs_input = self.query_one("#search_log_input")
         content_window = self.query_one(TabbedContent)
 
         if search_logs_input.styles.display == "block":

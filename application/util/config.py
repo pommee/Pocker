@@ -33,6 +33,7 @@ def create_default_config():
             "attributes": "a",
             "environment": "e",
             "statistics": "d",
+            "shell": "v",
             "fullscreen": "f",
             "wrap-logs": "w",
             "toggle-scroll": "s",
