@@ -1,5 +1,3 @@
-import os
-
 from pydantic import BaseModel
 from yaml import dump, safe_load
 
@@ -39,13 +37,14 @@ def create_default_config():
             "toggle-scroll": "s",
         },
     }
-    with open(CONFIG_PATH, "w") as file:
+    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with CONFIG_PATH.open("w") as file:
         dump(default_config, file)
 
 
 def load_config():
-    if not os.path.exists(CONFIG_PATH):
+    if not CONFIG_PATH.exists():
         create_default_config()
-    with open(CONFIG_PATH, "r") as file:
+    with CONFIG_PATH.open() as file:
         config_dict = safe_load(file)
         return Config(**config_dict)
