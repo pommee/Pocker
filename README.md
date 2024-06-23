@@ -71,6 +71,7 @@ Upon the first startup, a configuration file will be generated and stored at `$H
 | `a` | Attributes    | Displays the attributes panel, showing various item attributes. |
 | `e` | Environment   | Opens the environment settings view.                            |
 | `d` | Statistics    | Shows statistical information related to the container.         |
+| `v` | Shell         | Creates a shell for the current container.                      |
 | `f` | Fullscreen    | Toggles fullscreen mode for the logs view.                      |
 | `w` | Wrap Logs     | Toggles log wrapping in the logs view.                          |
 | `s` | Toggle Scroll | Toggles scrolling mode for the current view.                    |
