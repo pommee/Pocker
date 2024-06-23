@@ -76,3 +76,11 @@ Upon the first startup, a configuration file will be generated and stored at `$H
 | `s` | Toggle Scroll | Toggles scrolling mode for the current view.                    |
 
 This table helps you understand the functionalities assigned to each key, making navigation and operation more efficient.
+
+### Errors
+
+Errors will be displayed whenever encountered.
+
+![keybind-error](./resources/keybind-error.png)
+
+> Example of faulty keybind for `Shell`; in this case the key does not exist in the config.
