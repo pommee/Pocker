@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/pommee/Pocker/compare/v1.5.1...v1.6.0) (2024-06-23)
+
+
+### Features
+
+* added shell for container ([13ed545](https://github.com/pommee/Pocker/commit/13ed545f63e35d4fbcaa0847acfbed22d8bceca7))
+
 ## [1.5.1](https://github.com/pommee/Pocker/compare/v1.5.0...v1.5.1) (2024-06-23)
 
 
