@@ -86,7 +86,7 @@ def live_statistics_task():
             logs.border_subtitle = (
                 f"cpu: {cpu} | ram: {memory} | logs: {len(logs.lines)}"
             )
-        except:
+        except Exception:
             pass
 
 
@@ -220,7 +220,6 @@ class ShellPane(TabPane):
 
 
 class ContentWindow(Widget):
-
     current_index = 0
     search_keyword = ""
     matches, indices = None, None
@@ -309,7 +308,6 @@ class ContentWindow(Widget):
 
 
 class UI(App):
-
     CSS_PATH = "styles.tcss"
     SCREENS = {"helpscreen": HelpScreen()}
     TITLE = "Pocker"
@@ -420,13 +418,13 @@ class UI(App):
     def _show_update_notification(self, current_version, latest_version):
         self.notify(
             title=f"New version available! v{current_version} -> v{latest_version}",
-            message=f"Update by running: 'pocker update'",
+            message="Update by running: 'pocker update'",
             timeout=6,
         )
 
     def _show_keybind_error(self, description: str):
         self.notify(
-            title=f"Keybind error",
+            title="Keybind error",
             message=f"Could not bind key for {description}\nKeymap can be found in config [b]{CONFIG_PATH}[/b]",
             severity="warning",
             timeout=6,
@@ -456,7 +454,7 @@ class UI(App):
         try:
             if self.query_one(Input).has_focus and key == "escape":
                 self.action_toggle_search_log()
-        except:
+        except Exception:
             pass
 
     def on_list_view_selected(self):
@@ -551,7 +549,7 @@ class UI(App):
         self.query_one("#shell-input", Input).focus()
 
     def action_wrap_text(self):
-        if logs.wrap == True:
+        if logs.wrap is True:
             logs.wrap = False
         else:
             logs.wrap = True
