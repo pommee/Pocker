@@ -85,7 +85,6 @@ def bright_text(text):
 
 
 class Release:
-
     def __init__(self, unparsed_text: dict) -> None:
         self.unparsed_text = unparsed_text
         self.version = None

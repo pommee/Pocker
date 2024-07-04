@@ -65,7 +65,7 @@ class HelpScreen(ModalScreen):
 
     def compose(self) -> ComposeResult:
         yield Footer()
-        with VerticalScroll() as vertical_scroll:
+        with VerticalScroll():
             with Center():
                 yield Static(get_title(), id="title", classes="title")
             yield Markdown(HELP_MD, id="help", classes="help")

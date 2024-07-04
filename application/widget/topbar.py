@@ -4,7 +4,6 @@ from textual.widgets import Label
 
 
 class TopBar(Container):
-
     HELP_TEXT = "press [b highlight]?[/b highlight] for help "
 
     def __init__(self, app_version: str, statuses=""):
