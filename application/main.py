@@ -192,7 +192,6 @@ class ShellPane(TabPane):
             stdin=slave_fd,
             stdout=slave_fd,
             stderr=slave_fd,
-            universal_newlines=True,
             preexec_fn=os.setsid,
         )
 
@@ -209,10 +208,8 @@ class ShellPane(TabPane):
         self.output_widget.write(Text.from_ansi(output))
 
     async def on_input_submitted(self, message: Input.Submitted) -> None:
-        command = message.value
-
-        self.send_command(command)
-        self.input_widget.value = ""
+        self.send_command(message.value)
+        self.input_widget.clear()
 
     def send_command(self, command: str) -> None:
         if self.process:

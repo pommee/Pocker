@@ -37,8 +37,7 @@ def get_current_version():
                 version = line.split()[1]
                 return version
 
-    except subprocess.CalledProcessError as e:
-        print(f"An error occurred: {e}")
+    except subprocess.CalledProcessError:
         return None
 
 
