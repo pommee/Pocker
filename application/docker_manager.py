@@ -8,7 +8,7 @@ from docker.models.images import Image, ImageCollection
 from textual.logging import TextualHandler
 from textual.widgets import RichLog
 
-from application.util.config import Config
+from application.util.config import CONFIG_PATH, Config
 
 logging.basicConfig(
     level="INFO",
@@ -24,7 +24,13 @@ class DockerManager:
             for container in self.client.containers.list(all=config.show_all_containers)
         }
         self.images: ImageCollection = self.client.images.list(all=True)
-        self.selected_container: Container = list(self.containers.values())[0]
+        try:
+            self.selected_container: Container = list(self.containers.values())[0]
+        except IndexError:
+            raise SystemExit(
+                "No containers to display. Set 'show_all_containers' to true in config to display exited containers.\n"
+                f"Config can be found at {CONFIG_PATH}"
+            )
         self.config = config
 
     @property
