@@ -275,20 +275,21 @@ class ContentWindow(Widget):
     def input_submitted(self, input=Input(validate_on=["submitted"])) -> None:
         keyword = input.value
 
-        if len(keyword) == 0 or keyword is not self.search_keyword:
+        if not keyword or keyword != self.search_keyword:
             self.current_index = 0
             self.search_keyword = ""
+            self.indices = []
 
-        if self.current_index == 0:
+        if self.current_index == 0 and keyword:
             self.search_logs(keyword)
-            self.current_index = len(self.indices) - 1
             self.search_keyword = keyword
+            self.current_index = len(self.indices) - 1
 
-        if len(self.indices) > 0:
+        if self.indices:
             self.current_index -= 1
             self.update_input_border()
             logs.scroll_to(
-                y=self.indices[self.current_index], animate=True, duration=0.2
+                y=self.indices[self.current_index], animate=False, duration=0
             )
         else:
             input.border_title = "No results"
