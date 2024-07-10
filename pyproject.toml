@@ -13,12 +13,12 @@ packages = [{ include = "application" }]
 python = "^3.10.9"
 docker = "^7.0.0"
 textual = "^0.72.0"
-black = "^24.4.2"
 pyyaml = "^6.0.1"
 pydantic = "^2.7.3"
 click = "^8.1.7"
 colorama = "^0.4.6"
 yaspin = "^3.0.2"
+packaging = "^24.1"
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "^2.3.1"

@@ -1,14 +1,11 @@
-.PHONY: all format check
-
-SRC = .
-BLACK = black
-ISORT = isort
-AUTOFLAKE = autoflake
-PYTHON_FILES = $(shell find $(SRC) -name "*.py")
+.PHONY: dev format
 
 dev:
-	poetry shell && textual run --dev application.main:UI
+ifeq ($(VIRTUAL_ENV),)
+	poetry shell
+else
+	textual run --dev application.main:UI
+endif
 
 format: 
 	ruff format && ruff check
-
