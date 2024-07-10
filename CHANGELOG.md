@@ -1,3 +1,10 @@
+## [1.6.4](https://github.com/pommee/Pocker/compare/v1.6.3...v1.6.4) (2024-07-10)
+
+
+### Bug Fixes
+
+* show error if no containers are found at startup ([2c5f924](https://github.com/pommee/Pocker/commit/2c5f924a071c3dc4dfc9bb7e42a6d1faa38e60e3))
+
 ## [1.6.3](https://github.com/pommee/Pocker/compare/v1.6.2...v1.6.3) (2024-07-10)
 
 
