@@ -17,7 +17,6 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.logging import TextualHandler
-from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import (
     Button,
@@ -264,15 +263,13 @@ class ContentWindow(Widget):
             yield ShellPane("Shell", id="shellpane")
 
     def search_logs(self, pattern):
-        matches = []
-        indices = []
-        line: Strip
-        for i, line in enumerate(logs.lines):
-            if re.search(pattern, line.text):
-                matches.append(line)
-                indices.append(i)
-        self.matches = matches
-        self.indices = indices
+        compiled_pattern = re.compile(pattern)
+        self.matches = [
+            line for line in logs.lines if compiled_pattern.search(line.text)
+        ]
+        self.indices = [
+            i for i, line in enumerate(logs.lines) if compiled_pattern.search(line.text)
+        ]
 
     @on(Input.Submitted)
     def input_submitted(self, input=Input(validate_on=["submitted"])) -> None:
