@@ -70,9 +70,7 @@ def run_log_task():
 
 
 def live_statistics_task():
-    for stats in docker_manager.container(docker_manager.selected_container).stats(
-        stream=True, decode=True
-    ):
+    for stats in docker_manager.selected_container.stats(stream=True, decode=True):
         try:
             cpu_usage = (
                 stats["cpu_stats"]["cpu_usage"]["total_usage"]
@@ -98,11 +96,10 @@ class PockerContainers(Widget):
         yield Static("Containers", classes="containers-and-images-header")
         with self.list_view:
             container: Container
-            for container in docker_manager.containers:
-                container_name = container.attrs["Names"][0].replace("/", "")
+            for name, container in docker_manager.containers.items():
                 yield ListItem(
-                    Label(container_name),
-                    id=container_name,
+                    Label(name),
+                    id=name,
                     classes=docker_manager.status(container),
                 )
         with Horizontal(id="startstopbuttons"):
@@ -119,10 +116,10 @@ class PockerContainers(Widget):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         id = str(event.button.id)
         if id == "stopAllContainers":
-            for container in docker_manager.containers:
+            for container in docker_manager.containers.values():
                 container.stop()
         elif id == "startAllContainers":
-            for container in docker_manager.containers:
+            for container in docker_manager.containers.values():
                 container.start()
 
     def live_status_events_task(self):
@@ -181,7 +178,7 @@ class ShellPane(TabPane):
         yield Input(placeholder="Enter command...", id="shell-input")
 
     def run_shell(self) -> None:
-        self.container = docker_manager.current_container
+        self.container = docker_manager.selected_container
         self.output_widget = self.query_one("#shell-output", RichLog)
         self.input_widget = self.query_one("#shell-input", Input)
 
@@ -227,7 +224,7 @@ class ContentWindow(Widget):
         with TabbedContent():
             with TabPane("Logs", id="logpane"):
                 logs = RichLog(id="logs", highlight=True, auto_scroll=True, name="Log")
-                logs.border_title = docker_manager.selected_container
+                logs.border_title = docker_manager.selected_container.name
                 logs.scroll_end(animate=False)
                 yield logs
             with TabPane("Attributes", id="attributespane"):
@@ -237,7 +234,7 @@ class ContentWindow(Widget):
                     auto_scroll=True,
                     name="Attributes",
                 )
-                attributes.border_title = docker_manager.selected_container
+                attributes.border_title = docker_manager.selected_container.name
                 attributes.scroll_end(animate=False)
                 yield attributes
             with TabPane("Environment", id="environmentpane"):
@@ -247,7 +244,7 @@ class ContentWindow(Widget):
                     auto_scroll=True,
                     name="Environment",
                 )
-                environment.border_title = docker_manager.selected_container
+                environment.border_title = docker_manager.selected_container.name
                 environment.scroll_end(animate=False)
                 yield environment
             with TabPane("Statistics", id="statisticspane"):
@@ -257,7 +254,7 @@ class ContentWindow(Widget):
                     auto_scroll=True,
                     name="Statistics",
                 )
-                statistics.border_title = docker_manager.selected_container
+                statistics.border_title = docker_manager.selected_container.name
                 statistics.scroll_end(animate=False)
                 yield statistics
             yield ShellPane("Shell", id="shellpane")
@@ -485,11 +482,13 @@ class UI(App):
 
         self.current_index = new_index
         docker_manager.selected_container = str(new_item.children[0].renderable)
-        logs.border_title = docker_manager.selected_container
+        logs.border_title = docker_manager.selected_container.name
 
     @on(TabbedContent.TabActivated)
     def action_show_tab(self, tab: TabbedContent.TabActivated) -> None:
         selected_tab = tab.tab.id.replace("--content-tab-", "")
+        if self.query_one(TabbedContent).active_pane == selected_tab:
+            return
         match selected_tab:
             case "logpane":
                 self.action_restore_logs()
@@ -512,7 +511,7 @@ class UI(App):
         self.query_one(TabbedContent).active = "attributespane"
         attributes_log: RichLog = self.query_one("#attributes_log")
         attributes_log.clear()
-        attributes_log.border_title = docker_manager.selected_container
+        attributes_log.border_title = docker_manager.selected_container.name
         attributes_log.write(yaml.dump(docker_manager.attributes, indent=2))
         self.set_header_statuses()
 
@@ -520,7 +519,7 @@ class UI(App):
         self.query_one(TabbedContent).active = "environmentpane"
         environment_log: RichLog = self.query_one("#environment_log")
         environment_log.clear()
-        environment_log.border_title = docker_manager.selected_container
+        environment_log.border_title = docker_manager.selected_container.name
         for entry in docker_manager.environment:
             key = entry.split("=")[0]
             value = entry.split("=")[1]
@@ -531,7 +530,7 @@ class UI(App):
         self.query_one(TabbedContent).active = "statisticspane"
         statistics_log: RichLog = self.query_one("#statistics_log")
         statistics_log.clear()
-        statistics_log.border_title = docker_manager.selected_container
+        statistics_log.border_title = docker_manager.selected_container.name
         statistics_log.write(yaml.dump(docker_manager.statistics, indent=2))
         self.set_header_statuses()
 
@@ -540,7 +539,7 @@ class UI(App):
         shell_log: RichLog = self.query_one("#shell-output")
         shell_log.clear()
         self.query_one(ShellPane).run_shell()
-        shell_log.border_title = docker_manager.selected_container
+        shell_log.border_title = docker_manager.selected_container.name
         self.query_one("#shell-input", Input).focus()
 
     def action_wrap_text(self):

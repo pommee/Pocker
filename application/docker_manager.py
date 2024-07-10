@@ -3,7 +3,7 @@ import time
 from threading import Event
 
 import docker
-from docker.models.containers import Container, ContainerCollection
+from docker.models.containers import Container
 from docker.models.images import Image, ImageCollection
 from textual.logging import TextualHandler
 from textual.widgets import RichLog
@@ -19,34 +19,28 @@ logging.basicConfig(
 class DockerManager:
     def __init__(self, config: Config) -> None:
         self.client = docker.from_env()
-        self.containers: ContainerCollection = self.client.containers.list(
-            all=True, sparse=True
-        )
+        self.containers = {
+            container.name: container
+            for container in self.client.containers.list(all=config.show_all_containers)
+        }
         self.images: ImageCollection = self.client.images.list(all=True)
-        self.selected_container = self.containers[0].attrs["Names"][0].replace("/", "")
+        self.selected_container: Container = list(self.containers.values())[0]
         self.config = config
-
-    def container(self, container_name: str) -> Container:
-        return self.client.containers.get(container_name)
-
-    @property
-    def current_container(self):
-        return self.container(self.selected_container)
 
     @property
     def attributes(self) -> Container:
-        return self.current_container.attrs
+        return self.selected_container.attrs
 
     @property
     def environment(self) -> dict:
-        return self.current_container.attrs.get("Config").get("Env")
+        return self.selected_container.attrs.get("Config").get("Env")
 
     @property
     def statistics(self) -> Image:
-        return self.current_container.stats(stream=False)
+        return self.selected_container.stats(stream=False)
 
     def logs(self):
-        logs: bytes = self.current_container.logs(
+        logs: bytes = self.selected_container.logs(
             tail=self.config.log_tail, follow=False, stream=False
         )
         return logs.decode("utf-8").strip()
@@ -66,14 +60,10 @@ class DockerManager:
         logs.write(self.logs())
 
         while not stop_event.is_set():
-            new_logs = (
-                self.container(self.selected_container)
-                .logs(since=last_fetch)
-                .decode("utf-8")
-            )
+            new_logs = self.selected_container.logs(since=last_fetch)
 
             if new_logs:
                 last_fetch = time.time()
-                logs.write(new_logs.rstrip())
+                logs.write(new_logs.decode("utf-8").rstrip())
 
             time.sleep(1)
