@@ -1,3 +1,10 @@
+## [1.6.2](https://github.com/pommee/Pocker/compare/v1.6.1...v1.6.2) (2024-07-10)
+
+
+### Bug Fixes
+
+* improve 'search logs' performance ([3dc8cdf](https://github.com/pommee/Pocker/commit/3dc8cdfda31a4e3565715fc9d4f31b7ac2aa521c))
+
 ## [1.6.1](https://github.com/pommee/Pocker/compare/v1.6.0...v1.6.1) (2024-06-23)
 
 
