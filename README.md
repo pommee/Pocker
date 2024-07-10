@@ -54,13 +54,14 @@ Keybinds can be seen in the footer when started or by pressing `?` to display he
 
 Upon the first startup, a configuration file will be generated and stored at `$HOME/.config/pocker/config.yaml`.
 
-| Key              | Default | Info                                                                                                                                  |
-| ---------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| log_tail         | 2000    | At **startup**, Pocker will fetch `log_tail` amount of container logs.<br> Not recommended to exceed ~3000 as startup will slow down. |
-| max_log_lines    | 2000    | The displayed container logs are shown sequentially, with the oldest log being removed as a new one appears.                          |
-| start_fullscreen | False   | Display container logs in fullscreen mode at startup.                                                                                 |
-| start_scroll     | True    | Automatically scrolls when new logs are fetched.                                                                                      |
-| start_wrap       | False   | When enabled, logs will wrap to fit the content window.                                                                               |
+| Key                 | Default | Info                                                                                                                                  |
+| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| log_tail            | 2000    | At **startup**, Pocker will fetch `log_tail` amount of container logs.<br> Not recommended to exceed ~3000 as startup will slow down. |
+| max_log_lines       | 2000    | The displayed container logs are shown sequentially, with the oldest log being removed as a new one appears.                          |
+| show_all_containers | false   | Show running and exited containers.                                                                                                   |
+| start_fullscreen    | false   | Display container logs in fullscreen mode at startup.                                                                                 |
+| start_scroll        | true    | Automatically scrolls when new logs are fetched.                                                                                      |
+| start_wrap          | false   | When enabled, logs will wrap to fit the content window.                                                                               |
 
 ### Keymap [default]
 
