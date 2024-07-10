@@ -1,3 +1,10 @@
+## [1.6.3](https://github.com/pommee/Pocker/compare/v1.6.2...v1.6.3) (2024-07-10)
+
+
+### Bug Fixes
+
+* added 'show_all_containers' ([638044c](https://github.com/pommee/Pocker/commit/638044cac6fabbbdea57b766367cab89ac37fb42))
+
 ## [1.6.2](https://github.com/pommee/Pocker/compare/v1.6.1...v1.6.2) (2024-07-10)
 
 
