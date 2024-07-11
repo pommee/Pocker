@@ -481,7 +481,9 @@ class UI(App):
         new_item.classes |= {"selected"}
 
         self.current_index = new_index
-        docker_manager.selected_container = str(new_item.children[0].renderable)
+        docker_manager.selected_container = docker_manager.containers.get(
+            str(new_item.children[0].renderable)
+        )
         logs.border_title = docker_manager.selected_container.name
 
     @on(TabbedContent.TabActivated)
