@@ -1,3 +1,10 @@
+## [1.6.5](https://github.com/pommee/Pocker/compare/v1.6.4...v1.6.5) (2024-07-11)
+
+
+### Bug Fixes
+
+* fix bug when clicking other container in list ([f53d534](https://github.com/pommee/Pocker/commit/f53d534ef44c01e93c19bd2c5f2d1103da8e5bfc))
+
 ## [1.6.4](https://github.com/pommee/Pocker/compare/v1.6.3...v1.6.4) (2024-07-10)
 
 
