@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/pommee/Pocker/compare/v1.6.5...v1.7.0) (2024-07-11)
+
+
+### Features
+
+* added case-sensitive switch when searching logs ([af1c862](https://github.com/pommee/Pocker/commit/af1c86213bcb774351500b3a9c98aa5f850162e9))
+
 ## [1.6.5](https://github.com/pommee/Pocker/compare/v1.6.4...v1.6.5) (2024-07-11)
 
 
