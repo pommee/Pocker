@@ -21,16 +21,12 @@ A big thanks goes over to the creator and contributors of textual as it makes fo
 > [!NOTE]
 > Pipx must be installed.
 
-```shell
-pip install pipx
-```
-
 ## 📦 Installation
 
 ### Latest version
 
 ```shell
-pipx install git+https://github.com/pommee/Pocker@main
+pipx install git+https://github.com/pommee/Pocker
 ```
 
 ### Install from local repository
@@ -69,6 +65,7 @@ Upon the first startup, a configuration file will be generated and stored at `$H
 | --- | ------------- | --------------------------------------------------------------- |
 | `q` | Quit          | Exits the application.                                          |
 | `l` | Logs          | Opens the logs view to display log entries.                     |
+| `/` | Search        | Search logs.                                                    |
 | `a` | Attributes    | Displays the attributes panel, showing various item attributes. |
 | `e` | Environment   | Opens the environment settings view.                            |
 | `d` | Statistics    | Shows statistical information related to the container.         |

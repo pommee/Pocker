@@ -25,8 +25,11 @@ Author: [pommee](https://github.com/pommee)
 - `q` to quit pocker.
 - `?` shows this help modal.
 - `l` updates the content window with logs of selected container.
-- `a` same as above but displays attributes.
+- `/` search in the content window.
+- `a` show container attributes.
+- `e` show container environment variables.
 - `f` display content window in full-size.
+- `v` shell in the container.
 - `w` will wrap logs/attributes to avoid horizontal scrolling.
 
 ### Other keys
