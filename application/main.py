@@ -29,6 +29,7 @@ from textual.widgets import (
     RichLog,
     Rule,
     Static,
+    Switch,
     TabbedContent,
     TabPane,
 )
@@ -220,7 +221,15 @@ class ContentWindow(Widget):
     def compose(self) -> ComposeResult:
         global logs
 
-        yield Input(id="search_log_input", placeholder="Search logs...", type="text")
+        yield Horizontal(
+            Input(id="search_log_input", placeholder="Search logs...", type="text"),
+            Horizontal(
+                Static("case-sensitive", classes="label"),
+                Switch(id="case-sensitive-switch", animate=True),
+                classes="case-sensitive-switch",
+            ),
+            classes="container",
+        )
         with TabbedContent():
             with TabPane("Logs", id="logpane"):
                 logs = RichLog(id="logs", highlight=True, auto_scroll=True, name="Log")
@@ -260,13 +269,23 @@ class ContentWindow(Widget):
             yield ShellPane("Shell", id="shellpane")
 
     def search_logs(self, pattern):
-        compiled_pattern = re.compile(pattern)
-        self.matches = [
-            line for line in logs.lines if compiled_pattern.search(line.text)
+        case_sensitive_switch = self.query_one("#case-sensitive-switch", Switch).value
+        case_sensitive = 0 if case_sensitive_switch else re.IGNORECASE
+        compiled_pattern = re.compile(pattern, case_sensitive)
+
+        results = [
+            (line, i)
+            for i, line in enumerate(logs.lines)
+            if compiled_pattern.search(line.text)
         ]
-        self.indices = [
-            i for i, line in enumerate(logs.lines) if compiled_pattern.search(line.text)
-        ]
+
+        if results:
+            self.matches, self.indices = zip(*results)
+            self.matches = list(self.matches)
+            self.indices = list(self.indices)
+        else:
+            self.matches = []
+            self.indices = []
 
     @on(Input.Submitted)
     def input_submitted(self, input=Input(validate_on=["submitted"])) -> None:
@@ -581,13 +600,14 @@ class UI(App):
 
     def action_toggle_search_log(self):
         search_logs_input = self.query_one("#search_log_input")
+        search_container = self.query_one(".container")
         content_window = self.query_one(TabbedContent)
 
-        if search_logs_input.styles.display == "block":
-            search_logs_input.styles.display = "none"
+        if search_container.styles.display == "block":
+            search_container.styles.display = "none"
             content_window.styles.height = "100%"
         else:
-            search_logs_input.styles.display = "block"
+            search_container.styles.display = "block"
             content_window.styles.height = "94%"
             content_window.scroll_end(animate=False)
 
