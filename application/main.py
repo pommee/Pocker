@@ -223,6 +223,9 @@ class UI(App):
         old_index = self.current_index
         new_index = self.list_view.index
 
+        if old_index == new_index:
+            return
+
         docker_manager.selected_container = self.list_view.children[new_index].id
         self.set_list_item_background(old_index, new_index)
         self.content_window.run_log_task()
