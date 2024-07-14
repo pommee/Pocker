@@ -63,7 +63,6 @@ class DockerManager:
     def live_container_logs(self, logs: RichLog, stop_event: Event):
         logs.clear()
         last_fetch = time.time()
-        logs.write(self.logs())
 
         while not stop_event.is_set():
             new_logs = self.selected_container.logs(since=last_fetch)
