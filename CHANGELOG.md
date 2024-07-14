@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/pommee/Pocker/compare/v1.7.0...v1.7.1) (2024-07-14)
+
+
+### Bug Fixes
+
+* remove duplicated logs and double reinitialization ([2e29927](https://github.com/pommee/Pocker/commit/2e2992711774da172c644be970e333a0c1f8bdc8))
+
 # [1.7.0](https://github.com/pommee/Pocker/compare/v1.6.5...v1.7.0) (2024-07-11)
 
 
