@@ -1,37 +1,23 @@
 import logging
-import os
-import pty
-import re
 import subprocess
-from threading import Event, Thread
+from threading import Thread
 
 import click
 import yaml
 from colorama import Fore, Style
-from docker.models.containers import Container
-from docker.models.images import Image
 from packaging.version import parse
-from rich.text import Text
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical
+from textual.containers import Vertical
 from textual.logging import TextualHandler
-from textual.widget import Widget
 from textual.widgets import (
-    Button,
     ContentSwitcher,
     Footer,
     Input,
-    Label,
-    ListItem,
-    ListView,
     RichLog,
     Rule,
-    Static,
-    Switch,
     TabbedContent,
-    TabPane,
 )
 from yaspin import yaspin
 
@@ -46,276 +32,20 @@ from application.util.helper import (
     time_since_last_fetch,
     write_latest_version_fetch,
 )
+from application.widget.containers import PockerContainers
+from application.widget.content import ContentWindow
+from application.widget.images import PockerImages
+from application.widget.shell import ShellPane
 from application.widget.topbar import TopBar
 
 #### REFERENCES ####
 logs: RichLog
 docker_manager: DockerManager
-log_task_stop_event = Event()
 
 logging.basicConfig(
     level="INFO",
     handlers=[TextualHandler()],
 )
-
-
-def live_logs_task():
-    docker_manager.live_container_logs(logs, log_task_stop_event)
-
-
-def run_log_task():
-    global log_task_stop_event
-    log_task_stop_event.set()  # Signal any existing task to stop
-    log_task_stop_event = Event()  # Create a new stop event for the new task
-    Thread(target=live_logs_task, daemon=True).start()
-
-
-def live_statistics_task():
-    for stats in docker_manager.selected_container.stats(stream=True, decode=True):
-        try:
-            cpu_usage = (
-                stats["cpu_stats"]["cpu_usage"]["total_usage"]
-                / stats["cpu_stats"]["system_cpu_usage"]
-            )
-            memory_usage_mb = stats["memory_stats"]["usage"] / (1024 * 1024)
-
-            cpu = "{:.3f}%".format(cpu_usage * 100)
-            memory = "{:.3f} MB".format(memory_usage_mb)
-            logs.border_subtitle = (
-                f"cpu: {cpu} | ram: {memory} | logs: {len(logs.lines)}"
-            )
-        except Exception:
-            pass
-
-
-class PockerContainers(Widget):
-    BORDER_TITLE: str = "Containers"
-
-    def compose(self) -> ComposeResult:
-        self.list_view = ListView(id="ContainersAndImagesListView")
-
-        yield Static("Containers", classes="containers-and-images-header")
-        with self.list_view:
-            container: Container
-            for name, container in docker_manager.containers.items():
-                yield ListItem(
-                    Label(name),
-                    id=name,
-                    classes=docker_manager.status(container),
-                )
-        with Horizontal(id="startstopbuttons"):
-            yield Button("Start all", id="startAllContainers")
-            yield Button("Stop all", id="stopAllContainers")
-
-    async def on_mount(self) -> None:
-        self.list_view.children[0].add_class("selected")
-        self.list_view.sort_children(
-            key=lambda listview_container: listview_container.has_class("running"),
-            reverse=True,
-        )
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        id = str(event.button.id)
-        if id == "stopAllContainers":
-            for container in docker_manager.containers.values():
-                container.stop()
-        elif id == "startAllContainers":
-            for container in docker_manager.containers.values():
-                container.start()
-
-    def live_status_events_task(self):
-        event: dict[str, str]
-        for event in docker_manager.client.events(decode=True):
-            if event["Type"] == "container" and event["status"] in [
-                "start",
-                "stop",
-                "die",
-            ]:
-                container_name = event.get("Actor").get("Attributes").get("name")
-                container_list_item: ListItem = self.list_view.get_child_by_id(
-                    container_name
-                )
-                status = ""
-                was_selected: bool = container_list_item.has_class("selected")
-
-                if event["status"] == "start":
-                    status = "running"
-                elif event["status"] == "stop":
-                    status = "stopped"
-                else:
-                    status = "down"
-
-                container_list_item.set_classes(status)
-                if was_selected:
-                    container_list_item.add_class("selected")
-
-
-class PockerImages(Widget):
-    BORDER_TITLE: str = "Images"
-
-    def compose(self) -> ComposeResult:
-        yield Static("Images", classes="containers-and-images-header")
-        with ListView(id="ContainersAndImagesListView"):
-            image: Image
-            for image in docker_manager.images:
-                if image.tags:
-                    name = image.tags[0].split(":")[0]
-                    version = image.tags[0].split(":")[1]
-                    yield ListItem(Label(f"{name}:{version}"))
-
-    # TODO: Implement fetching relevant information regarding an image.
-    def on_list_view_selected(self, item: ListItem):
-        pass
-
-
-class ShellPane(TabPane):
-    def compose(self) -> ComposeResult:
-        yield RichLog(
-            id="shell-output",
-            highlight=True,
-            auto_scroll=True,
-            name="ShellPaneLog",
-        )
-        yield Input(placeholder="Enter command...", id="shell-input")
-
-    def run_shell(self) -> None:
-        self.container = docker_manager.selected_container
-        self.output_widget = self.query_one("#shell-output", RichLog)
-        self.input_widget = self.query_one("#shell-input", Input)
-
-        self.master_fd, slave_fd = pty.openpty()
-        self.process = subprocess.Popen(
-            ["docker", "exec", "-it", self.container.id, "bash"],
-            stdin=slave_fd,
-            stdout=slave_fd,
-            stderr=slave_fd,
-            preexec_fn=os.setsid,
-        )
-
-        def read_output(fd):
-            while True:
-                output = os.read(fd, 16384).decode()
-                self.app.call_from_thread(self.write_output, output)
-
-        self.read_thread = Thread(target=read_output, args=(self.master_fd,))
-        self.read_thread.daemon = True
-        self.read_thread.start()
-
-    def write_output(self, output: str) -> None:
-        self.output_widget.write(Text.from_ansi(output))
-
-    async def on_input_submitted(self, message: Input.Submitted) -> None:
-        self.send_command(message.value)
-        self.input_widget.clear()
-
-    def send_command(self, command: str) -> None:
-        if self.process:
-            os.write(self.master_fd, (command + "\n").encode())
-
-
-class ContentWindow(Widget):
-    current_index = 0
-    search_keyword = ""
-    matches, indices = None, None
-
-    def compose(self) -> ComposeResult:
-        global logs
-
-        yield Horizontal(
-            Input(id="search_log_input", placeholder="Search logs...", type="text"),
-            Horizontal(
-                Static("case-sensitive", classes="label"),
-                Switch(id="case-sensitive-switch", animate=True),
-                classes="case-sensitive-switch",
-            ),
-            classes="container",
-        )
-        with TabbedContent():
-            with TabPane("Logs", id="logpane"):
-                logs = RichLog(id="logs", highlight=True, auto_scroll=True, name="Log")
-                logs.border_title = docker_manager.selected_container.name
-                logs.scroll_end(animate=False)
-                yield logs
-            with TabPane("Attributes", id="attributespane"):
-                attributes = RichLog(
-                    id="attributes_log",
-                    highlight=True,
-                    auto_scroll=True,
-                    name="Attributes",
-                )
-                attributes.border_title = docker_manager.selected_container.name
-                attributes.scroll_end(animate=False)
-                yield attributes
-            with TabPane("Environment", id="environmentpane"):
-                environment = RichLog(
-                    id="environment_log",
-                    highlight=True,
-                    auto_scroll=True,
-                    name="Environment",
-                )
-                environment.border_title = docker_manager.selected_container.name
-                environment.scroll_end(animate=False)
-                yield environment
-            with TabPane("Statistics", id="statisticspane"):
-                statistics = RichLog(
-                    id="statistics_log",
-                    highlight=True,
-                    auto_scroll=True,
-                    name="Statistics",
-                )
-                statistics.border_title = docker_manager.selected_container.name
-                statistics.scroll_end(animate=False)
-                yield statistics
-            yield ShellPane("Shell", id="shellpane")
-
-    def search_logs(self, pattern):
-        case_sensitive_switch = self.query_one("#case-sensitive-switch", Switch).value
-        case_sensitive = 0 if case_sensitive_switch else re.IGNORECASE
-        compiled_pattern = re.compile(pattern, case_sensitive)
-
-        results = [
-            (line, i)
-            for i, line in enumerate(logs.lines)
-            if compiled_pattern.search(line.text)
-        ]
-
-        if results:
-            self.matches, self.indices = zip(*results)
-            self.matches = list(self.matches)
-            self.indices = list(self.indices)
-        else:
-            self.matches = []
-            self.indices = []
-
-    @on(Input.Submitted)
-    def input_submitted(self, input=Input(validate_on=["submitted"])) -> None:
-        keyword = input.value
-
-        if not keyword or keyword != self.search_keyword:
-            self.current_index = 0
-            self.search_keyword = ""
-            self.indices = []
-
-        if self.current_index == 0 and keyword:
-            self.search_logs(keyword)
-            self.search_keyword = keyword
-            self.current_index = len(self.indices) - 1
-
-        if self.indices:
-            self.current_index -= 1
-            self.update_input_border()
-            logs.scroll_to(
-                y=self.indices[self.current_index], animate=False, duration=0
-            )
-        else:
-            input.border_title = "No results"
-            self.current_index = 0
-
-    def update_input_border(self):
-        line = str(self.indices[self.current_index + 1])
-        input = self.query_one("#search_log_input")
-        input.border_title = f"{self.current_index + 1}/{len(self.indices) - 1}"
-        input.border_subtitle = f"line {line}"
 
 
 class UI(App):
@@ -385,12 +115,16 @@ class UI(App):
         docker_manager = DockerManager(self.config)
         self.set_bindings_from_config_keymap()
 
+        self.content_window = ContentWindow(
+            id="ContentWindow", docker_manager=docker_manager
+        )
+
         yield TopBar(get_current_version())
         with Vertical(id="containers-and-images"):
-            yield PockerContainers(id="PockerContainers")
+            yield PockerContainers(id="PockerContainers", docker_manager=docker_manager)
             yield Rule("horizontal")
-            yield PockerImages(id="PockerImages")
-        yield ContentWindow(id="ContentWindow")
+            yield PockerImages(id="PockerImages", docker_manager=docker_manager)
+        yield self.content_window
         yield Footer()
 
     async def on_mount(self) -> None:
@@ -402,6 +136,7 @@ class UI(App):
         )
 
     def read_and_apply_config(self):
+        logs = self.query_one("#logs", RichLog)
         logs.max_lines = self.config.max_log_lines
 
         if self.config.start_fullscreen:
@@ -442,8 +177,10 @@ class UI(App):
         )
 
     def _run_threads(self):
-        run_log_task()
-        statistics_thread = Thread(target=live_statistics_task, daemon=True)
+        self.content_window.run_log_task()
+        statistics_thread = Thread(
+            target=self.content_window.live_statistics_task, daemon=True
+        )
         status_events_thread = Thread(
             target=self.query_one(PockerContainers).live_status_events_task, daemon=True
         )
@@ -451,6 +188,7 @@ class UI(App):
         status_events_thread.start()
 
     def set_header_statuses(self):
+        logs = self.query_one("#logs", RichLog)
         self.query_one("#topbar_statuses").update(
             f"Wrap [{logs.wrap}]    Scroll [{logs.auto_scroll}]"
         )
@@ -487,12 +225,14 @@ class UI(App):
 
         docker_manager.selected_container = self.list_view.children[new_index].id
         self.set_list_item_background(old_index, new_index)
-        run_log_task()
+        self.content_window.run_log_task()
 
         current_tab = self.query_one(ContentSwitcher).current
         _update_tab_content(self, current_tab)
 
     def set_list_item_background(self, old_index: int, new_index: int):
+        logs = self.query_one("#logs", RichLog)
+
         old_item = self.list_view.children[old_index]
         new_item = self.list_view.children[new_index]
 
@@ -523,6 +263,8 @@ class UI(App):
                 self.action_shell()
 
     def action_restore_logs(self):
+        logs = self.query_one("#logs", RichLog)
+
         self.query_one(TabbedContent).active = "logpane"
         logs.clear()
         logs.write(docker_manager.logs())
@@ -564,6 +306,8 @@ class UI(App):
         self.query_one("#shell-input", Input).focus()
 
     def action_wrap_text(self):
+        logs = self.query_one("#logs", RichLog)
+
         if logs.wrap is True:
             logs.wrap = False
         else:
@@ -592,6 +336,8 @@ class UI(App):
         self.set_header_statuses()
 
     def action_toggle_auto_scroll(self):
+        logs = self.query_one("#logs", RichLog)
+
         if logs.auto_scroll:
             logs.auto_scroll = False
         else:
