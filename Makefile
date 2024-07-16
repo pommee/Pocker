@@ -9,3 +9,6 @@ endif
 
 format: 
 	ruff format && ruff check
+
+format-fix: 
+	ruff format && ruff check --fix 
