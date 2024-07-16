@@ -81,6 +81,20 @@ RichLog {
     border-subtitle-color: white 50%;
 }
 
+LogLines {
+    border: round cornflowerblue;
+    scrollbar-size: 1 1;
+    border-subtitle-color: white 50%;
+
+    .loglines--filter-highlight {
+        background: #111111;
+    }
+    .loglines--filter-highlight-selected {
+        background: orange;
+        color: auto;
+    }
+}
+
 Input {
     border: round cornflowerblue;
     background: transparent;

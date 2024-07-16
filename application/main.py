@@ -15,7 +15,6 @@ from textual.widgets import (
     ContentSwitcher,
     Footer,
     Input,
-    RichLog,
     Rule,
     TabbedContent,
 )
@@ -35,11 +34,12 @@ from application.util.helper import (
 from application.widget.containers import PockerContainers
 from application.widget.content import ContentWindow
 from application.widget.images import PockerImages
+from application.widget.log_viewer import LogLines
 from application.widget.shell import ShellPane
 from application.widget.topbar import TopBar
 
 #### REFERENCES ####
-logs: RichLog
+logs: LogLines
 docker_manager: DockerManager
 
 logging.basicConfig(
@@ -58,6 +58,7 @@ class UI(App):
             action="push_screen('helpscreen')",
         ),
         Binding(key="/", action="toggle_search_log", description="Search"),
+        Binding(key="escape", action="dismiss_search_log"),
     ]
     current_index = 0
 
@@ -136,7 +137,7 @@ class UI(App):
         )
 
     def read_and_apply_config(self):
-        logs = self.query_one("#logs", RichLog)
+        logs = self.query_one("#logs", LogLines)
         logs.max_lines = self.config.max_log_lines
 
         if self.config.start_fullscreen:
@@ -188,7 +189,7 @@ class UI(App):
         status_events_thread.start()
 
     def set_header_statuses(self):
-        logs = self.query_one("#logs", RichLog)
+        logs = self.query_one("#logs", LogLines)
         self.query_one("#topbar_statuses").update(
             f"Wrap [{logs.wrap}]    Scroll [{logs.auto_scroll}]"
         )
@@ -234,7 +235,7 @@ class UI(App):
         _update_tab_content(self, current_tab)
 
     def set_list_item_background(self, old_index: int, new_index: int):
-        logs = self.query_one("#logs", RichLog)
+        logs = self.query_one("#logs", LogLines)
 
         old_item = self.list_view.children[old_index]
         new_item = self.list_view.children[new_index]
@@ -266,7 +267,7 @@ class UI(App):
                 self.action_shell()
 
     def action_restore_logs(self):
-        logs = self.query_one("#logs", RichLog)
+        logs = self.query_one("#logs", LogLines)
 
         self.query_one(TabbedContent).active = "logpane"
         logs.clear()
@@ -275,7 +276,7 @@ class UI(App):
 
     def action_attributes(self):
         self.query_one(TabbedContent).active = "attributespane"
-        attributes_log: RichLog = self.query_one("#attributes_log")
+        attributes_log: LogLines = self.query_one("#attributes_log")
         attributes_log.clear()
         attributes_log.border_title = docker_manager.selected_container.name
         attributes_log.write(yaml.dump(docker_manager.attributes, indent=2))
@@ -283,7 +284,7 @@ class UI(App):
 
     def action_environment(self):
         self.query_one(TabbedContent).active = "environmentpane"
-        environment_log: RichLog = self.query_one("#environment_log")
+        environment_log: LogLines = self.query_one("#environment_log")
         environment_log.clear()
         environment_log.border_title = docker_manager.selected_container.name
         for entry in docker_manager.environment:
@@ -294,7 +295,7 @@ class UI(App):
 
     def action_statistics(self):
         self.query_one(TabbedContent).active = "statisticspane"
-        statistics_log: RichLog = self.query_one("#statistics_log")
+        statistics_log: LogLines = self.query_one("#statistics_log")
         statistics_log.clear()
         statistics_log.border_title = docker_manager.selected_container.name
         statistics_log.write(yaml.dump(docker_manager.statistics, indent=2))
@@ -302,14 +303,14 @@ class UI(App):
 
     def action_shell(self):
         self.query_one(TabbedContent).active = "shellpane"
-        shell_log: RichLog = self.query_one("#shell-output")
+        shell_log: LogLines = self.query_one("#shell-output")
         shell_log.clear()
         self.query_one(ShellPane).run_shell()
         shell_log.border_title = docker_manager.selected_container.name
         self.query_one("#shell-input", Input).focus()
 
     def action_wrap_text(self):
-        logs = self.query_one("#logs", RichLog)
+        logs = self.query_one("#logs", LogLines)
 
         if logs.wrap is True:
             logs.wrap = False
@@ -339,7 +340,7 @@ class UI(App):
         self.set_header_statuses()
 
     def action_toggle_auto_scroll(self):
-        logs = self.query_one("#logs", RichLog)
+        logs = self.query_one("#logs", LogLines)
 
         if logs.auto_scroll:
             logs.auto_scroll = False
@@ -361,6 +362,24 @@ class UI(App):
             content_window.scroll_end(animate=False)
 
         search_logs_input.focus()
+
+    def action_dismiss_search_log(self):
+        search_logs_input = self.query_one("#search_log_input", Input)
+        search_container = self.query_one(".container")
+        content_window = self.query_one(TabbedContent)
+
+        search_container.styles.display = "none"
+        search_logs_input.clear()
+        search_logs_input.border_subtitle = ""
+        search_logs_input.border_title = ""
+        content_window.styles.height = "100%"
+        content_window.scroll_end(animate=False)
+
+        content_window.focus()
+
+        log_lines = self.content_window.query_one("#logs", LogLines)
+        log_lines.keyword = None
+        log_lines.current_index = None
 
 
 def start():

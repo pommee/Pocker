@@ -6,9 +6,9 @@ import docker
 from docker.models.containers import Container
 from docker.models.images import Image, ImageCollection
 from textual.logging import TextualHandler
-from textual.widgets import RichLog
 
 from application.util.config import CONFIG_PATH, Config
+from application.widget.log_viewer import LogLines
 
 logging.basicConfig(
     level="INFO",
@@ -60,7 +60,7 @@ class DockerManager:
 
         return status
 
-    def live_container_logs(self, logs: RichLog, stop_event: Event):
+    def live_container_logs(self, logs: LogLines, stop_event: Event):
         logs.clear()
         last_fetch = time.time()
 
