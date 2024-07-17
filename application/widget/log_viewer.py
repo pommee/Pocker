@@ -51,6 +51,7 @@ class LogLines(ScrollView, can_focus=True):
         self.max_lines = max_lines
         self.keyword = None
         self.current_index = None
+        self.case_sensitive = False
         self._start_line: int = 0
         self.lines: list[Strip] = []
         self._line_cache: LRUCache[tuple[int, int, int, int], Strip]
@@ -176,7 +177,7 @@ class LogLines(ScrollView, can_focus=True):
                 re.finditer(
                     self.keyword,
                     line.text,
-                    flags=re.IGNORECASE,
+                    flags=self.case_sensitive,
                 )
             )
 
