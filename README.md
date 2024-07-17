@@ -1,6 +1,23 @@
 <p align="center">
   <img src="./resources/pocker-name.png" />
-  <img src="./resources/home-preview.png" />
+  <table>
+    <tr>
+        <td>
+            <img width="100%" src="./resources/home-preview.png">
+        </td>
+        <td>
+            <img width="100%" src="./resources/search-logs.png">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <img width="100%" src="./resources/shell-preview.png">
+        </td>
+        <td>
+            <img width="100%" src="./resources/help-screen-preview.png">
+        </td>
+    </tr>
+  </table>
 </p>
 
 # 👋🏼 Introduction
@@ -8,8 +25,10 @@
 Pocker is a TUI tool to help with docker related tasks. For example,
 
 - View containers/images.
-- See logs and attributes.
 - Manage status of containers.
+- See logs, attributes, environment variables and container statistics.
+- Filter logs based on keywords.
+- Start shell inside a container.
 
 The tool is heavily based on [docker-py](https://docker-py.readthedocs.io/en/stable/index.html) and [textual](https://github.com/textualize/textual/).  
 A big thanks goes over to the creator and contributors of textual as it makes for a very sleek and easy interface.
@@ -19,7 +38,8 @@ A big thanks goes over to the creator and contributors of textual as it makes fo
 ## 🤏🏼 Prerequisite
 
 > [!NOTE]
-> Pipx must be installed.
+> Pipx must be installed.  
+> Python version >= 3.10.9
 
 ## 📦 Installation
 
