@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pocker"
-version = "1.7.1"
+version = "1.8.0"
 description = "CLI tool for docker images, containers, logs and more."
 authors = ["pommee"]
 readme = "README.md"

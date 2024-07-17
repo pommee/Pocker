@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/pommee/Pocker/compare/v1.7.1...v1.8.0) (2024-07-17)
+
+
+### Features
+
+* add highlighting for keyword when searching ([a619be0](https://github.com/pommee/Pocker/commit/a619be035615be2b858fbad297ac7c7cd4a1ccb5))
+
 ## [1.7.1](https://github.com/pommee/Pocker/compare/v1.7.0...v1.7.1) (2024-07-14)
 
 
