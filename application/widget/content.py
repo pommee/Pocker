@@ -112,6 +112,8 @@ class ContentWindow(Widget):
     @on(Input.Changed)
     def input_changed(self, input=Input(validate_on=["changed"])) -> None:
         keyword = input.value
+        case_sensitive_switch = self.query_one("#case-sensitive-switch", Switch).value
+        logs.case_sensitive = 0 if case_sensitive_switch else re.IGNORECASE
 
         if not keyword or keyword != self.search_keyword:
             self.current_index = 0
@@ -139,6 +141,8 @@ class ContentWindow(Widget):
     @on(Input.Submitted)
     def input_submitted(self, input=Input(validate_on=["submitted"])) -> None:
         keyword = input.value
+        case_sensitive_switch = self.query_one("#case-sensitive-switch", Switch).value
+        logs.case_sensitive = 0 if case_sensitive_switch else re.IGNORECASE
 
         if not keyword or keyword != self.search_keyword:
             self.current_index = 0
