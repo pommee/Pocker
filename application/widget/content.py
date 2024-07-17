@@ -7,7 +7,6 @@ from textual.containers import Horizontal
 from textual.widget import Widget
 from textual.widgets import (
     Input,
-    RichLog,
     Static,
     Switch,
     TabbedContent,
@@ -15,6 +14,7 @@ from textual.widgets import (
 )
 
 from application.docker_manager import DockerManager
+from application.widget.log_viewer import LogLines
 from application.widget.shell import ShellPane
 
 
@@ -52,12 +52,12 @@ class ContentWindow(Widget):
         )
         with TabbedContent():
             with TabPane("Logs", id="logpane"):
-                logs = RichLog(id="logs", highlight=True, auto_scroll=True, name="Log")
+                logs = LogLines(id="logs", highlight=True, auto_scroll=True, name="Log")
                 logs.border_title = self.docker_manager.selected_container.name
                 logs.scroll_end(animate=False)
                 yield logs
             with TabPane("Attributes", id="attributespane"):
-                attributes = RichLog(
+                attributes = LogLines(
                     id="attributes_log",
                     highlight=True,
                     auto_scroll=True,
@@ -67,7 +67,7 @@ class ContentWindow(Widget):
                 attributes.scroll_end(animate=False)
                 yield attributes
             with TabPane("Environment", id="environmentpane"):
-                environment = RichLog(
+                environment = LogLines(
                     id="environment_log",
                     highlight=True,
                     auto_scroll=True,
@@ -77,7 +77,7 @@ class ContentWindow(Widget):
                 environment.scroll_end(animate=False)
                 yield environment
             with TabPane("Statistics", id="statisticspane"):
-                statistics = RichLog(
+                statistics = LogLines(
                     id="statistics_log",
                     highlight=True,
                     auto_scroll=True,
@@ -109,6 +109,33 @@ class ContentWindow(Widget):
             self.matches = []
             self.indices = []
 
+    @on(Input.Changed)
+    def input_changed(self, input=Input(validate_on=["changed"])) -> None:
+        keyword = input.value
+
+        if not keyword or keyword != self.search_keyword:
+            self.current_index = 0
+            self.search_keyword = ""
+            self.indices = []
+
+        if self.current_index == 0 and keyword:
+            self.search_logs(keyword)
+            self.search_keyword = keyword
+            self.current_index = len(self.indices) - 1
+
+        if self.indices:
+            self.current_index -= 1
+            self.update_input_border()
+            logs.scroll_to(
+                y=self.indices[self.current_index], animate=False, duration=0
+            )
+            logs.keyword = keyword
+            logs.current_index = self.indices[self.current_index] + 1
+            logs.refresh()  # Force refresh, just to get rid of slow visual changes.
+        else:
+            input.border_title = "No results"
+            self.current_index = 0
+
     @on(Input.Submitted)
     def input_submitted(self, input=Input(validate_on=["submitted"])) -> None:
         keyword = input.value
@@ -129,6 +156,9 @@ class ContentWindow(Widget):
             logs.scroll_to(
                 y=self.indices[self.current_index], animate=False, duration=0
             )
+            logs.keyword = keyword
+            logs.current_index = self.indices[self.current_index] + 1
+            logs.refresh()  # Force refresh, just to get rid of slow visual changes.
         else:
             input.border_title = "No results"
             self.current_index = 0
