@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/pommee/Pocker/compare/v1.8.0...v1.8.1) (2024-07-17)
+
+
+### Bug Fixes
+
+* respect case-sensitive when searching logs ([a88c854](https://github.com/pommee/Pocker/commit/a88c854a293e1e404263d8733898150794a2e61a))
+
 # [1.8.0](https://github.com/pommee/Pocker/compare/v1.7.1...v1.8.0) (2024-07-17)
 
 
