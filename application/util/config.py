@@ -42,6 +42,11 @@ class Config(BaseModel):
         with CONFIG_PATH.open("w") as file:
             dump(default_config, file)
 
+    def save(self):
+        CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with CONFIG_PATH.open("w") as file:
+            dump(self.model_dump(), file)
+
 
 def load_config():
     if not CONFIG_PATH.exists():

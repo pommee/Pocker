@@ -22,7 +22,6 @@ from yaspin import yaspin
 
 from application.docker_manager import DockerManager
 from application.util.config import CONFIG_PATH, load_config
-from application.util.help import HelpScreen
 from application.util.helper import (
     get_current_version,
     get_latest_version,
@@ -33,8 +32,10 @@ from application.util.helper import (
 )
 from application.widget.containers import PockerContainers
 from application.widget.content import ContentWindow
+from application.widget.help import HelpScreen
 from application.widget.images import PockerImages
 from application.widget.log_viewer import LogLines
+from application.widget.settings import SettingsScreen
 from application.widget.shell import ShellPane
 from application.widget.topbar import TopBar
 
@@ -50,12 +51,16 @@ logging.basicConfig(
 
 class UI(App):
     CSS_PATH = "styles.tcss"
-    SCREENS = {"helpscreen": HelpScreen()}
+    SCREENS = {"helpscreen": HelpScreen(), "settingsscreen": SettingsScreen()}
     TITLE = "Pocker"
     BINDINGS = [
         Binding(
             key="question_mark",
             action="push_screen('helpscreen')",
+        ),
+        Binding(
+            key="p",
+            action="push_screen('settingsscreen')",
         ),
         Binding(key="/", action="toggle_search_log", description="Search"),
         Binding(key="escape", action="dismiss_search_log"),
