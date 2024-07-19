@@ -6,7 +6,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.containers import Center, VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import Footer, Markdown, Static
+from textual.widgets import Markdown, Static
 
 from application.util.helper import POCKER_CONFIG_BASE_PATH, get_current_version
 
@@ -67,7 +67,6 @@ class HelpScreen(ModalScreen):
     ]
 
     def compose(self) -> ComposeResult:
-        yield Footer()
         with VerticalScroll():
             with Center():
                 yield Static(get_title(), id="title", classes="title")

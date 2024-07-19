@@ -38,7 +38,6 @@ TopBar {
 PockerContainers {
     border-title-align: center;
     height: 50%;
-    border: none;
 }
 
 Rule {
@@ -55,10 +54,6 @@ PockerImages {
 VerticalScroll {
     padding: 0;
     margin: 0;
-}
-
-ListItem {
-    background: transparent;
 }
 
 ContentWindow {
@@ -149,6 +144,10 @@ Button {
     height: 1;
 }
 
+ListItem {
+    background: transparent;
+}
+
 ListItem.selected {
     text-style: bold;
     background: gray 10%;
@@ -204,4 +203,42 @@ HelpScreen VerticalScroll {
         border: none;
         background: transparent;
     }
+}
+
+SettingsScreen VerticalScroll {
+    background: $surface;
+    margin: 4 8;
+
+    scrollbar-gutter: stable;
+    Markdown {
+        margin: 0 2;
+    }
+}
+
+SettingsScreen Horizontal {
+    background: cornflowerblue 5%;
+    height: 5;
+    margin-left: 3;
+
+    .label {
+        height: 1;
+        margin-top: 1;
+        margin-left: 1;
+        margin-bottom: 1;
+    }
+
+    .switch-with-status {
+        width: 12;
+        height: 1;
+        margin-left: 1;
+    }
+    
+    Switch {
+        margin-left: -2;
+    }
+}
+
+Grid {
+    grid-size: 2 3;
+    grid-gutter: 1 2;
 }
