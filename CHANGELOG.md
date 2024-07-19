@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/pommee/Pocker/compare/v1.8.1...v1.9.0) (2024-07-19)
+
+
+### Features
+
+* added settings page ([6ae211c](https://github.com/pommee/Pocker/commit/6ae211c206f8537093f855681efd3fdb00ffddab))
+
 ## [1.8.1](https://github.com/pommee/Pocker/compare/v1.8.0...v1.8.1) (2024-07-17)
 
 
