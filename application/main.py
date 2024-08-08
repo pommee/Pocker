@@ -10,12 +10,13 @@ from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
+from textual.events import DescendantFocus
 from textual.logging import TextualHandler
 from textual.widgets import (
     ContentSwitcher,
     Footer,
     Input,
-    Rule,
+    ListView,
     TabbedContent,
 )
 from yaspin import yaspin
@@ -127,8 +128,11 @@ class UI(App):
 
         yield TopBar(get_current_version())
         with Vertical(id="containers-and-images"):
-            yield PockerContainers(id="PockerContainers", docker_manager=docker_manager)
-            yield Rule("horizontal")
+            yield PockerContainers(
+                id="PockerContainers",
+                docker_manager=docker_manager,
+                classes="active-widget",
+            )
             yield PockerImages(id="PockerImages", docker_manager=docker_manager)
         yield self.content_window
         yield Footer()
@@ -140,6 +144,31 @@ class UI(App):
         self.list_view = self.query_one(PockerContainers).query_one(
             "#ContainersAndImagesListView"
         )
+        self.currently_focused_widget = self.focused
+
+    @on(DescendantFocus)
+    def focus_switched(self, focus: DescendantFocus):
+        widget = focus.widget
+
+        try:
+            self.currently_focused_widget.remove_class("active-widget")
+        except AttributeError:
+            pass  # Previous widget might not have a border.
+
+        if type(widget) is ListView:
+            next_focused_widget = widget.parent
+            widget.parent.add_class("active-widget")
+        elif "ContentTabs" in str(type(widget)):
+            underline = widget.query_one("Underline")
+            underline.add_class("active-widget")
+            next_focused_widget = underline
+        else:
+            self.log(widget)
+            pass
+            next_focused_widget = widget
+            widget.add_class("active-widget")
+
+        self.currently_focused_widget = next_focused_widget
 
     def read_and_apply_config(self):
         logs = self.query_one("#logs", LogLines)
