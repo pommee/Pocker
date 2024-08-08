@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/pommee/Pocker/compare/v1.9.0...v1.10.0) (2024-08-08)
+
+
+### Features
+
+* cycle containers using arrows ([156a9ec](https://github.com/pommee/Pocker/commit/156a9ec6f2e55a90788939b99a19cb48deea70cc))
+
 # [1.9.0](https://github.com/pommee/Pocker/compare/v1.8.1...v1.9.0) (2024-07-19)
 
 
