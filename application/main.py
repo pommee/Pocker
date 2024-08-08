@@ -163,8 +163,6 @@ class UI(App):
             underline.add_class("active-widget")
             next_focused_widget = underline
         else:
-            self.log(widget)
-            pass
             next_focused_widget = widget
             widget.add_class("active-widget")
 
