@@ -14,7 +14,7 @@ class TopBar(Container):
             id="topbar_title",
         )
         self.topbar_statuses = Label(statuses, id="topbar_statuses")
-        self.topbar_help = Label(self.HELP_TEXT,  id="topbar_help")
+        self.topbar_help = Label(self.HELP_TEXT, id="topbar_help")
 
     def compose(self) -> ComposeResult:
         yield self.topbar_title
