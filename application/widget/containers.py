@@ -1,13 +1,10 @@
 from docker.models.containers import Container
 from textual.app import ComposeResult
-from textual.containers import Horizontal
 from textual.widget import Widget
 from textual.widgets import (
-    Button,
     Label,
     ListItem,
     ListView,
-    Static,
 )
 
 from application.docker_manager import DockerManager
@@ -35,7 +32,6 @@ class PockerContainers(Widget):
     def compose(self) -> ComposeResult:
         self.list_view = ListView(id="ContainersAndImagesListView")
 
-        yield Static("Containers", classes="containers-and-images-header")
         with self.list_view:
             container: Container
             for name, container in self.docker_manager.containers.items():
@@ -44,9 +40,6 @@ class PockerContainers(Widget):
                     id=name,
                     classes=self.docker_manager.status(container),
                 )
-        with Horizontal(id="startstopbuttons"):
-            yield Button("Start all", id="startAllContainers")
-            yield Button("Stop all", id="stopAllContainers")
 
     def on_list_view_highlighted(self, highlighted: ListView.Highlighted):
         if self.first_run:
@@ -66,15 +59,6 @@ class PockerContainers(Widget):
             key=lambda listview_container: listview_container.has_class("running"),
             reverse=True,
         )
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        id = str(event.button.id)
-        if id == "stopAllContainers":
-            for container in self.docker_manager.containers.values():
-                container.stop()
-        elif id == "startAllContainers":
-            for container in self.docker_manager.containers.values():
-                container.start()
 
     def live_status_events_task(self):
         event: dict[str, str]

@@ -5,7 +5,6 @@ from textual.widgets import (
     Label,
     ListItem,
     ListView,
-    Static,
 )
 
 from application.docker_manager import DockerManager
@@ -29,7 +28,6 @@ class PockerImages(Widget):
         )
 
     def compose(self) -> ComposeResult:
-        yield Static("Images", classes="containers-and-images-header")
         with ListView(id="ContainersAndImagesListView"):
             image: Image
             for image in self.docker_manager.images:
