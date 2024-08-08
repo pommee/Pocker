@@ -26,6 +26,8 @@ class PockerContainers(Widget):
         disabled: bool = False,
     ) -> None:
         self.docker_manager = docker_manager
+        self.highlighted_child_index = 0
+        self.first_run = True
         super().__init__(
             *children, name=name, id=id, classes=classes, disabled=disabled
         )
@@ -45,6 +47,18 @@ class PockerContainers(Widget):
         with Horizontal(id="startstopbuttons"):
             yield Button("Start all", id="startAllContainers")
             yield Button("Stop all", id="stopAllContainers")
+
+    def on_list_view_highlighted(self, highlighted: ListView.Highlighted):
+        if self.first_run:
+            self.first_run = False
+            return
+
+        list_view = highlighted.list_view
+        list_item = highlighted.item
+
+        list_item.add_class("selected")
+        list_view.children[self.highlighted_child_index].remove_class("selected")
+        self.highlighted_child_index = list_view.index
 
     async def on_mount(self) -> None:
         self.list_view.children[0].add_class("selected")
