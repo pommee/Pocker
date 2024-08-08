@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/pommee/Pocker/compare/v1.10.0...v1.11.0) (2024-08-08)
+
+
+### Features
+
+* cycle widget color feedback ([c024ef4](https://github.com/pommee/Pocker/commit/c024ef45e02db9886f5135478edda94d65c75cb5))
+
 # [1.10.0](https://github.com/pommee/Pocker/compare/v1.9.0...v1.10.0) (2024-08-08)
 
 
