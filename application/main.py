@@ -105,7 +105,7 @@ class UI(App):
         self.set_keybind(
             keymap.get("toggle-scroll"),
             "toggle_auto_scroll",
-            description="Wrap logs",
+            description="Auto scroll",
         )
 
     def set_keybind(self, key: str, action: str, description: str):
