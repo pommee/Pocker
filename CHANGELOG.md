@@ -1,3 +1,10 @@
+## [1.11.3](https://github.com/pommee/Pocker/compare/v1.11.2...v1.11.3) (2024-08-12)
+
+
+### Bug Fixes
+
+* add newly started container to manager list ([c705981](https://github.com/pommee/Pocker/commit/c7059812a437f119bc9a033e1a5f5df65b2061ce))
+
 ## [1.11.2](https://github.com/pommee/Pocker/compare/v1.11.1...v1.11.2) (2024-08-12)
 
 
