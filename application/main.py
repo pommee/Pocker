@@ -64,6 +64,7 @@ class UI(App):
             key="p",
             action="push_screen('settingsscreen')",
         ),
+        Binding(key="TAB", action="NOT_VALID_ACTION", description="Cycle widget"),
         Binding(key="/", action="toggle_search_log", description="Search"),
         Binding(key="escape", action="dismiss_search_log"),
     ]
@@ -71,7 +72,6 @@ class UI(App):
 
     def set_bindings_from_config_keymap(self) -> None:
         keymap = load_config().keymap
-        self.set_keybind(keymap.get("quit"), "quit", description="Quit")
         self.set_keybind(keymap.get("logs"), "restore_logs", description="Logs")
         self.set_keybind(
             keymap.get("attributes"),
