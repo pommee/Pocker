@@ -1,3 +1,10 @@
+## [1.11.2](https://github.com/pommee/Pocker/compare/v1.11.1...v1.11.2) (2024-08-12)
+
+
+### Bug Fixes
+
+* daemon thread to respect ctrl+c ([681be21](https://github.com/pommee/Pocker/commit/681be21809eeb94c399031c206755b63ea06a3a5))
+
 ## [1.11.1](https://github.com/pommee/Pocker/compare/v1.11.0...v1.11.1) (2024-08-12)
 
 
