@@ -1,3 +1,10 @@
+## [1.11.1](https://github.com/pommee/Pocker/compare/v1.11.0...v1.11.1) (2024-08-12)
+
+
+### Bug Fixes
+
+* make container state more reliable and reflect in ui ([99c655c](https://github.com/pommee/Pocker/commit/99c655cf198d859f5f4e52672b82ce2e3ad97f98))
+
 # [1.11.0](https://github.com/pommee/Pocker/compare/v1.10.0...v1.11.0) (2024-08-08)
 
 
