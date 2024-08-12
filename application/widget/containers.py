@@ -1,3 +1,5 @@
+import asyncio
+
 from docker.models.containers import Container
 from textual.app import ComposeResult
 from textual.widget import Widget
@@ -60,28 +62,63 @@ class PockerContainers(Widget):
             reverse=True,
         )
 
-    def live_status_events_task(self):
+    async def _validate_if_any_container_selected(self):
+        for child in self.list_view.walk_children():
+            if child.has_class("selected"):
+                return
+
+        first_child = self.list_view.query()[0]
+        first_child.add_class("selected")
+
+    def live_status_events_task(self, loop: asyncio.AbstractEventLoop):
         event: dict[str, str]
         for event in self.docker_manager.client.events(decode=True):
-            if event["Type"] == "container" and event["status"] in [
-                "start",
-                "stop",
-                "die",
-            ]:
+            if event["Type"] == "container":
                 container_name = event.get("Actor").get("Attributes").get("name")
-                container_list_item: ListItem = self.list_view.get_child_by_id(
-                    container_name
-                )
-                status = ""
-                was_selected: bool = container_list_item.has_class("selected")
+                match event["status"]:
+                    case "start":
+                        asyncio.run_coroutine_threadsafe(
+                            self._container_started(container_name), loop
+                        )
+                    case "stop":
+                        asyncio.run_coroutine_threadsafe(
+                            self._container_status_changed(container_name, "stopping"),
+                            loop,
+                        )
+                    case "die":
+                        asyncio.run_coroutine_threadsafe(
+                            self._container_status_changed(container_name, "down"), loop
+                        )
+                    case "destroy":
+                        asyncio.run_coroutine_threadsafe(
+                            self._container_destroyed(container_name), loop
+                        )
 
-                if event["status"] == "start":
-                    status = "running"
-                elif event["status"] == "stop":
-                    status = "stopped"
-                else:
-                    status = "down"
+    async def _container_started(self, container_name: str):
+        for child in self.list_view.walk_children():
+            if child.id == container_name:
+                child.remove_class("down")
+                child.set_class(True, "running")
+                await self._validate_if_any_container_selected()
+                return
 
-                container_list_item.set_classes(status)
-                if was_selected:
-                    container_list_item.add_class("selected")
+        await self.list_view.append(
+            ListItem(Label(container_name), id=container_name, classes="running")
+        )
+        await self._validate_if_any_container_selected()
+
+    async def _container_status_changed(self, container_name: str, status: str):
+        container_list_item: ListItem = self.list_view.get_child_by_id(container_name)
+        was_selected: bool = container_list_item.has_class("selected")
+
+        container_list_item.set_classes(status)
+        if was_selected:
+            container_list_item.add_class("selected")
+
+    async def _container_destroyed(self, container_name: str):
+        for x in self.list_view.walk_children():
+            if x.id == container_name:
+                self.list_view.remove_children(f"#{container_name}")
+                break
+
+        await self._validate_if_any_container_selected()

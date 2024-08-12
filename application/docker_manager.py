@@ -65,7 +65,11 @@ class DockerManager:
         last_fetch = time.time()
 
         while not stop_event.is_set():
-            new_logs = self.selected_container.logs(since=last_fetch)
+            try:
+                new_logs = self.selected_container.logs(since=last_fetch)
+            except Exception:
+                # Container might have been removed.
+                stop_event.set()
 
             if new_logs:
                 last_fetch = time.time()
