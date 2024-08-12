@@ -219,7 +219,7 @@ class UI(App):
         Thread(
             target=self.query_one(PockerContainers).live_status_events_task,
             args=(loop,),
-            daemon=True
+            daemon=True,
         ).start()
 
         statistics_thread.start()

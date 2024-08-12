@@ -102,6 +102,7 @@ class PockerContainers(Widget):
                 await self._validate_if_any_container_selected()
                 return
 
+        self.docker_manager.append_container(container_name)
         await self.list_view.append(
             ListItem(Label(container_name), id=container_name, classes="running")
         )

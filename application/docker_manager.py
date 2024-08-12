@@ -45,6 +45,9 @@ class DockerManager:
     def statistics(self) -> Image:
         return self.selected_container.stats(stream=False)
 
+    def append_container(self, container_name: str):
+        self.containers[container_name] = self.client.containers.get(container_name)
+
     def logs(self):
         logs: bytes = self.selected_container.logs(
             tail=self.config.log_tail, follow=False, stream=False
