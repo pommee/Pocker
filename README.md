@@ -3,18 +3,18 @@
   <table>
     <tr>
         <td>
-            <img width="100%" src="./resources/home-preview.png">
+            <img width="100%" src="https://github.com/pommee/Pocker/blob/main/resources/home-preview.png?raw=true">
         </td>
         <td>
-            <img width="100%" src="./resources/search-logs.png">
+            <img width="100%" src="https://github.com/pommee/Pocker/blob/main/resources/search-logs.png?raw=true">
         </td>
     </tr>
     <tr>
         <td>
-            <img width="100%" src="./resources/shell-preview.png">
+            <img width="100%" src="https://github.com/pommee/Pocker/blob/main/resources/shell-preview.png?raw=true">
         </td>
         <td>
-            <img width="100%" src="./resources/help-screen-preview.png">
+            <img width="100%" src="https://github.com/pommee/Pocker/blob/main/resources/help-screen-preview.png?raw=true">
         </td>
     </tr>
   </table>
@@ -103,6 +103,6 @@ This table helps you understand the functionalities assigned to each key, making
 
 Errors will be displayed whenever encountered.
 
-![keybind-error](./resources/keybind-error.png)
+![keybind-error](https://github.com/pommee/Pocker/blob/main/resources/keybind-error.png?raw=true)
 
 > Example of faulty keybind for `Shell`; in this case the key does not exist in the config.
