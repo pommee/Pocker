@@ -111,7 +111,7 @@ class ContentWindow(Widget):
             self.indices = []
 
     @on(Input.Changed)
-    def input_changed(self, input=Input(validate_on=["changed"])) -> None:
+    def input_changed(self, input=Input()) -> None:
         keyword = input.value
         case_sensitive_switch = self.query_one("#case-sensitive-switch", Switch).value
         logs.case_sensitive = 0 if case_sensitive_switch else re.IGNORECASE
@@ -140,7 +140,7 @@ class ContentWindow(Widget):
             self.current_index = 0
 
     @on(Input.Submitted)
-    def input_submitted(self, input=Input(validate_on=["submitted"])) -> None:
+    def input_submitted(self, input=Input()) -> None:
         keyword = input.value
         case_sensitive_switch = self.query_one("#case-sensitive-switch", Switch).value
         logs.case_sensitive = 0 if case_sensitive_switch else re.IGNORECASE

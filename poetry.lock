@@ -189,7 +189,6 @@ files = [
     {file = "cachetools-5.4.0.tar.gz", hash = "sha256:b8adc2e7c07f105ced7bc56dbb6dfbe7c4a00acce20e2227b3f355be89bc6827"},
 ]
 
-[[package]]
 name = "certifi"
 version = "2024.7.4"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -1011,13 +1010,13 @@ tests = ["pytest", "pytest-cov"]
 
 [[package]]
 name = "textual"
-version = "0.72.0"
+version = "0.76.0"
 description = "Modern Text User Interface framework"
 optional = false
-python-versions = "<4.0,>=3.8"
+python-versions = "<4.0.0,>=3.8.1"
 files = [
-    {file = "textual-0.72.0-py3-none-any.whl", hash = "sha256:a9886eb96bd6391b8795244d2b8fe592204556c42264ea7513a1211584e17366"},
-    {file = "textual-0.72.0.tar.gz", hash = "sha256:14174ce8d49016a85aa6c0669d0881b5419e98cf46d429f263314295409ed262"},
+    {file = "textual-0.76.0-py3-none-any.whl", hash = "sha256:e2035609c889dba507d34a5d7b333f1c8c53a29fb170962cb92101507663517a"},
+    {file = "textual-0.76.0.tar.gz", hash = "sha256:b12e8879d591090c0901b5cb8121d086e28e677353b368292d3865ec99b83b70"},
 ]
 
 [package.dependencies]
