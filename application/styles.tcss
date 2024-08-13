@@ -29,7 +29,6 @@ TopBar {
 
 #containers-and-images {
     width: 20%;
-    margin: 1;
 }
 
 PockerContainers {
@@ -57,7 +56,7 @@ ContentWindow {
 }
 
 TabbedContent {
-    width: 80%;
+    width: 81%;
     background: transparent;
 }
 

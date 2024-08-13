@@ -369,8 +369,8 @@ class UI(App):
             search_window.styles.width = "100%"
         else:
             containers_and_images.styles.display = "block"
-            tabbed_content.styles.width = "79%"
-            search_window.styles.width = "79%"
+            tabbed_content.styles.width = "81%"
+            search_window.styles.width = "81%"
         self.set_header_statuses()
 
     def action_toggle_auto_scroll(self):
