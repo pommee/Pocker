@@ -213,17 +213,14 @@ class UI(App):
 
     def _run_threads(self):
         self.content_window.run_log_task()
-        statistics_thread = Thread(
-            target=self.content_window.live_statistics_task, daemon=True
-        )
         loop = asyncio.get_event_loop()
+
+        Thread(target=self.content_window.live_statistics_task, daemon=True).start()
         Thread(
             target=self.query_one(PockerContainers).live_status_events_task,
             args=(loop,),
             daemon=True,
         ).start()
-
-        statistics_thread.start()
 
     def set_header_statuses(self):
         logs = self.query_one("#logs", LogLines)

@@ -1,5 +1,6 @@
 import re
 from threading import Event, Thread
+from typing import Any
 
 from textual import on
 from textual.app import ComposeResult
@@ -182,20 +183,33 @@ class ContentWindow(Widget):
         Thread(target=self.live_logs_task, daemon=True).start()
 
     def live_statistics_task(self):
-        for stats in self.docker_manager.selected_container.stats(
-            stream=True, decode=True
-        ):
-            try:
-                cpu_usage = (
-                    stats["cpu_stats"]["cpu_usage"]["total_usage"]
-                    / stats["cpu_stats"]["system_cpu_usage"]
-                )
-                memory_usage_mb = stats["memory_stats"]["usage"] / (1024 * 1024)
+        stop_event = Event()
 
-                cpu = "{:.3f}%".format(cpu_usage * 100)
-                memory = "{:.3f} MB".format(memory_usage_mb)
-                logs.border_subtitle = (
-                    f"cpu: {cpu} | ram: {memory} | logs: {len(logs.lines)}"
-                )
+        while not stop_event.is_set():
+            try:
+                stats = self._fetch_container_stats()
+                cpu, memory = self._parse_stats(stats)
+                self._update_logs(cpu, memory)
             except Exception:
-                pass
+                stop_event.set()
+                self.live_logs_task()
+
+    def _fetch_container_stats(self):
+        return self.docker_manager.selected_container.stats(stream=False)
+
+    def _parse_stats(self, stats: dict[Any, Any]):
+        try:
+            cpu_usage = (
+                stats["cpu_stats"]["cpu_usage"]["total_usage"]
+                / stats["cpu_stats"]["system_cpu_usage"]
+            )
+            memory_usage_mb = stats["memory_stats"]["usage"] / (1024 * 1024)
+            cpu = f"{cpu_usage * 100:.3f}%"
+            memory = f"{memory_usage_mb:.3f} MB"
+            return cpu, memory
+        except KeyError as e:
+            self.log(f"Error parsing stats: {e}")
+            return "N/A", "N/A"
+
+    def _update_logs(self, cpu: str, memory: str):
+        logs.border_subtitle = f"cpu: {cpu} | ram: {memory} | logs: {len(logs.lines)}"
