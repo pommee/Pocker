@@ -49,15 +49,16 @@ class ShellPane(TabPane):
         self.container = self.docker_manager.selected_container
         self.output_widget = self.query_one("#shell-output", RichLog)
         self.input_widget = self.query_one("#shell-input", Input)
+        self.shell = "bash"
 
         if os.name == 'nt':
             self.process = PTY(80, 25)
-            if not self.process.spawn(f"docker exec -it {self.container.id} bash"):
+            if not self.process.spawn(f"docker exec -it {self.container.id} {self.shell}"):
                 raise Exception("Failed to spawn shell")
         else:
             self.master_fd, slave_fd = pty.openpty()
             self.process = subprocess.Popen(
-                ["docker", "exec", "-it", self.container.id, "bash"],
+                ["docker", "exec", "-it", self.container.id, self.shell],
                 stdin=slave_fd,
                 stdout=slave_fd,
                 stderr=slave_fd,
