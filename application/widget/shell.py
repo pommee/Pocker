@@ -74,7 +74,10 @@ class ShellPane(TabPane):
                     output = os.read(fd, 16384).decode()
                 self.app.call_from_thread(self.write_output, output)
 
-        self.read_thread = Thread(target=read_output, args=(self.process,))
+        if os.name == 'nt':
+            self.read_thread = Thread(target=read_output, args=(self.process,))
+        else:
+            self.read_thread = Thread(target=read_output, args=(self.master_fd,))
         self.read_thread.daemon = True
         self.read_thread.start()
 
