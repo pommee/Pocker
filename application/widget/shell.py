@@ -1,7 +1,12 @@
 import os
-import pty
+
 import subprocess
 from threading import Thread
+
+if os.name == 'nt':
+    from winpty import PTY
+else:
+    import pty
 
 from rich.text import Text, TextType
 from textual.app import ComposeResult
@@ -45,21 +50,31 @@ class ShellPane(TabPane):
         self.output_widget = self.query_one("#shell-output", RichLog)
         self.input_widget = self.query_one("#shell-input", Input)
 
-        self.master_fd, slave_fd = pty.openpty()
-        self.process = subprocess.Popen(
-            ["docker", "exec", "-it", self.container.id, "bash"],
-            stdin=slave_fd,
-            stdout=slave_fd,
-            stderr=slave_fd,
-            preexec_fn=os.setsid,
-        )
+        if os.name == 'nt':
+            self.process = PTY(80, 25)
+            if not self.process.spawn(f"docker exec -it {self.container.id} bash"):
+                raise Exception("Failed to spawn shell")
+        else:
+            self.master_fd, slave_fd = pty.openpty()
+            self.process = subprocess.Popen(
+                ["docker", "exec", "-it", self.container.id, "bash"],
+                stdin=slave_fd,
+                stdout=slave_fd,
+                stderr=slave_fd,
+                preexec_fn=os.setsid,
+            )
 
         def read_output(fd):
             while True:
-                output = os.read(fd, 16384).decode()
+                if os.name == 'nt':
+                    output = fd.read(16384)
+                    if not output:
+                        continue
+                else:
+                    output = os.read(fd, 16384).decode()
                 self.app.call_from_thread(self.write_output, output)
 
-        self.read_thread = Thread(target=read_output, args=(self.master_fd,))
+        self.read_thread = Thread(target=read_output, args=(self.process,))
         self.read_thread.daemon = True
         self.read_thread.start()
 
@@ -72,4 +87,7 @@ class ShellPane(TabPane):
 
     def send_command(self, command: str) -> None:
         if self.process:
-            os.write(self.master_fd, (command + "\n").encode())
+            if os.name == 'nt':
+                self.process.write(command + "\n")
+            else:
+                os.write(self.master_fd, (command + "\n").encode())

@@ -20,6 +20,7 @@ colorama = "^0.4.6"
 yaspin = "^3.0.2"
 packaging = "^24.1"
 cachetools = "^5.3.3"
+pywinpty = {version = "^2.0.13", platform = "win32"}
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "^2.3.1"
