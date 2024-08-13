@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./resources/pocker-name.png" />
+  <img src="https://github.com/pommee/Pocker/blob/main/resources/pocker-name.png?raw=true" />
   <table>
     <tr>
         <td>

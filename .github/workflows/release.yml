@@ -59,6 +59,7 @@ jobs:
       url: https://pypi.org/p/pocker-tui
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
+    if: "!contains(github.event.head_commit.message, 'chore:')"  # Skip if "chore:" is in the commit message
     steps:
     - name: Download all the dists
       uses: actions/download-artifact@v4
