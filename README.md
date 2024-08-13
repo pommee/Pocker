@@ -38,23 +38,25 @@ A big thanks goes over to the creator and contributors of textual as it makes fo
 ## 🤏🏼 Prerequisite
 
 > [!NOTE]
-> Pipx must be installed.  
-> Python version >= 3.10.9
+> [Pipx](https://pipx.pypa.io/stable/installation/) must be installed.  
+> Python version 3.10.9 or newer.
 
 ## 📦 Installation
 
-### Latest version
+Pocker is hosted at PyPi ([see here](https://pypi.org/project/pocker-tui/)).
+
 
 ```shell
-pipx install git+https://github.com/pommee/Pocker
+pipx install pocker-tui           # Latest version
+pipx install pocker-tui==version  # Specific version
 ```
 
-### Install from local repository
+### Install from GitHub repository
+
+PyPi will mostly contain newest version, but it is also possible to run install from this repository.
 
 ```bash
-git clone https://github.com/pommee/Pocker.git
-cd Pocker
-pipx install .
+pipx install git+https://github.com/pommee/Pocker
 ```
 
 ## 🚦 Usage
@@ -81,18 +83,19 @@ Upon the first startup, a configuration file will be generated and stored at `$H
 
 ### Keymap [default]
 
-| Key | Action        | Description                                                     |
-| --- | ------------- | --------------------------------------------------------------- |
-| `q` | Quit          | Exits the application.                                          |
-| `l` | Logs          | Opens the logs view to display log entries.                     |
-| `/` | Search        | Search logs.                                                    |
-| `a` | Attributes    | Displays the attributes panel, showing various item attributes. |
-| `e` | Environment   | Opens the environment settings view.                            |
-| `d` | Statistics    | Shows statistical information related to the container.         |
-| `v` | Shell         | Creates a shell for the current container.                      |
-| `f` | Fullscreen    | Toggles fullscreen mode for the logs view.                      |
-| `w` | Wrap Logs     | Toggles log wrapping in the logs view.                          |
-| `s` | Toggle Scroll | Toggles scrolling mode for the current view.                    |
+| Key   | Action        | Description                                                                      |
+| ----- | ------------- | -------------------------------------------------------------------------------- |
+| `q`   | Quit          | Exits the application.                                                           |
+| `l`   | Logs          | Opens the logs view to display log entries.                                      |
+| `/`   | Search        | Search logs.                                                                     |
+| `TAB` | Cycle widgets | Used to cycle widgets. Newly focused widget will have it's borders alter colors. |
+| `a`   | Attributes    | Displays the attributes panel, showing various item attributes.                  |
+| `e`   | Environment   | Opens the environment settings view.                                             |
+| `d`   | Statistics    | Shows statistical information related to the container.                          |
+| `v`   | Shell         | Creates a shell for the current container.                                       |
+| `f`   | Fullscreen    | Toggles fullscreen mode for the logs view.                                       |
+| `w`   | Wrap Logs     | Toggles log wrapping in the logs view.                                           |
+| `s`   | Toggle Scroll | Toggles scrolling mode for the current view.                                     |
 
 This table helps you understand the functionalities assigned to each key, making navigation and operation more efficient.
 
