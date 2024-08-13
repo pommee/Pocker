@@ -6,7 +6,7 @@ from threading import Thread
 import click
 import yaml
 from colorama import Fore, Style
-from packaging.version import parse
+from packaging.version import parse, InvalidVersion
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -183,7 +183,10 @@ class UI(App):
 
     @work(exclusive=True)
     async def _look_for_update(self):
-        current_version = parse(get_current_version())
+        fetched_version = get_current_version()  # can return None
+        if not fetched_version:
+            return
+        current_version = parse(fetched_version)
         last_fetch = parse(read_latest_version_fetch().version_fetched)
 
         if last_fetch > current_version:
