@@ -1,3 +1,10 @@
+## [1.11.4](https://github.com/pommee/Pocker/compare/v1.11.3...v1.11.4) (2024-08-13)
+
+
+### Bug Fixes
+
+* restore 'q' ([11b5a04](https://github.com/pommee/Pocker/commit/11b5a04eec69840e7c0a2c024f5c4a642456c070))
+
 ## [1.11.3](https://github.com/pommee/Pocker/compare/v1.11.2...v1.11.3) (2024-08-12)
 
 
