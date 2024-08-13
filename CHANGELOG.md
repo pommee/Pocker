@@ -1,3 +1,10 @@
+## [1.11.6](https://github.com/pommee/Pocker/compare/v1.11.5...v1.11.6) (2024-08-13)
+
+
+### Bug Fixes
+
+* remove margin for more widget space ([2760214](https://github.com/pommee/Pocker/commit/2760214dd050555063817833667a7c0f3a87f06c))
+
 ## [1.11.5](https://github.com/pommee/Pocker/compare/v1.11.4...v1.11.5) (2024-08-13)
 
 
