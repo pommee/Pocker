@@ -1,3 +1,10 @@
+## [1.11.5](https://github.com/pommee/Pocker/compare/v1.11.4...v1.11.5) (2024-08-13)
+
+
+### Bug Fixes
+
+* fix container statistics work when switching containers ([8315b77](https://github.com/pommee/Pocker/commit/8315b77c0d452a9eff2c4aa2808c3e5d76b917b1))
+
 ## [1.11.4](https://github.com/pommee/Pocker/compare/v1.11.3...v1.11.4) (2024-08-13)
 
 
