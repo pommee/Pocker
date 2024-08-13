@@ -4,7 +4,7 @@ from textual.widgets import Label
 
 
 class TopBar(Container):
-    HELP_TEXT = "[b yellow]?[/b yellow] Help  [b yellow]p[/b yellow] Settings  [b yellow]q[/b yellow] Quit "
+    HELP_TEXT = "[b yellow]?[/b yellow] Help  [b yellow]p[/b yellow] Settings "
 
     def __init__(self, app_version: str, statuses=""):
         super().__init__()
