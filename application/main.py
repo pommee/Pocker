@@ -6,7 +6,7 @@ from threading import Thread
 import click
 import yaml
 from colorama import Fore, Style
-from packaging.version import parse, InvalidVersion
+from packaging.version import parse
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -327,7 +327,7 @@ class UI(App):
         for entry in docker_manager.environment:
             name_value = entry.split("=", maxsplit=2)
             key = name_value[0]
-            if len(name_value)==2:
+            if len(name_value) == 2:
                 value = name_value[1]
             else:
                 value = ""
