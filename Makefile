@@ -1,4 +1,4 @@
-.PHONY: dev format
+.PHONY: dev format format-fix
 
 dev:
 ifeq ($(VIRTUAL_ENV),)
@@ -8,7 +8,7 @@ else
 endif
 
 format: 
-	ruff format && ruff check
+	ruff format --quiet && ruff check --quiet
 
 format-fix: 
 	ruff format && ruff check --fix 
