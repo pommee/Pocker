@@ -6,29 +6,26 @@ on:
       - main
 
 jobs:
-  release:
+
+  checkout:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11.9'
 
+
+  release:
+    name: Update changelog and create new github release
+    runs-on: ubuntu-latest
+
+    needs: checkout
+
+    steps:
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '21' 
-
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        export PATH="$HOME/.local/bin:$PATH"
-
-    - name: Install dependencies
-      run: poetry install
 
     - name: Install semantic-release
       run: npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/exec
@@ -40,18 +37,37 @@ jobs:
       run: |
         semantic-release
 
+
   publish-to-pypi:
     name: Publish pocker to PyPI
+    runs-on: ubuntu-latest
+
     needs:
     - release
-    runs-on: ubuntu-latest
+    - checkout
+
     environment:
       name: pypi
       url: https://pypi.org/p/pocker-tui
+
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
     if: "!contains(github.event.head_commit.message, 'chore:')"  # Skip if "chore:" is in the commit message
+
     steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11.9'
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        export PATH="$HOME/.local/bin:$PATH"
+
+    - name: Install dependencies
+      run: poetry install
+
     - name: Package
       run: poetry build
 
