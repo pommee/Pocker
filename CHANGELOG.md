@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/pommee/Pocker/compare/v1.12.0...v1.12.1) (2024-08-16)
+
+
+### Bug Fixes
+
+* new error modal when no containers are available ([a8e30d9](https://github.com/pommee/Pocker/commit/a8e30d95e01afcc448d2e88573167bd522e548c5))
+
 # [1.12.0](https://github.com/pommee/Pocker/compare/v1.11.6...v1.12.0) (2024-08-16)
 
 
