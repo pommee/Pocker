@@ -1,3 +1,10 @@
+## [1.12.3](https://github.com/pommee/Pocker/compare/v1.12.2...v1.12.3) (2024-08-16)
+
+
+### Bug Fixes
+
+* read and apply config on startup. stream logs instead of polling ([b55b724](https://github.com/pommee/Pocker/commit/b55b724d2efa4d1879953c2a1bc25aff409b27bb))
+
 ## [1.12.2](https://github.com/pommee/Pocker/compare/v1.12.1...v1.12.2) (2024-08-16)
 
 
