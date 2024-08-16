@@ -1,3 +1,10 @@
+## [1.12.2](https://github.com/pommee/Pocker/compare/v1.12.1...v1.12.2) (2024-08-16)
+
+
+### Bug Fixes
+
+* make 'search log' not skip lines ([768b7c4](https://github.com/pommee/Pocker/commit/768b7c4bf63559b52f98d9df6b668b338ccbc79a))
+
 ## [1.12.1](https://github.com/pommee/Pocker/compare/v1.12.0...v1.12.1) (2024-08-16)
 
 
