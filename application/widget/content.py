@@ -20,7 +20,7 @@ from application.widget.shell import ShellPane
 
 
 class ContentWindow(Widget):
-    current_index = 0
+    current_list_index = None
     search_keyword = ""
     matches, indices = None, None
     log_task_stop_event = Event()
@@ -113,65 +113,65 @@ class ContentWindow(Widget):
     @on(Input.Changed)
     def input_changed(self, input=Input()) -> None:
         keyword = input.value
-        case_sensitive_switch = self.query_one("#case-sensitive-switch", Switch).value
-        logs.case_sensitive = 0 if case_sensitive_switch else re.IGNORECASE
+        self._update_case_sensitivity()
 
         if not keyword or keyword != self.search_keyword:
-            self.current_index = 0
-            self.search_keyword = ""
-            self.indices = []
+            self._reset_search_state()
 
-        if self.current_index == 0 and keyword:
-            self.search_logs(keyword)
-            self.search_keyword = keyword
-            self.current_index = len(self.indices) - 1
+        if self.current_list_index is None and keyword:
+            self._perform_search(keyword)
 
         if self.indices:
-            self.current_index -= 1
-            self.update_input_border()
-            logs.scroll_to(
-                y=self.indices[self.current_index], animate=False, duration=0
-            )
-            logs.keyword = keyword
-            logs.current_index = self.indices[self.current_index] + 1
-            logs.refresh()  # Force refresh, just to get rid of slow visual changes.
+            self._update_input_display(keyword)
         else:
-            input.border_title = "No results"
-            self.current_index = 0
+            self._show_no_results()
 
     @on(Input.Submitted)
     def input_submitted(self, input=Input()) -> None:
         keyword = input.value
+        self._update_case_sensitivity()
+        self._update_list_index()
+        self._update_input_display(keyword)
+
+    def _update_case_sensitivity(self) -> None:
         case_sensitive_switch = self.query_one("#case-sensitive-switch", Switch).value
         logs.case_sensitive = 0 if case_sensitive_switch else re.IGNORECASE
 
-        if not keyword or keyword != self.search_keyword:
-            self.current_index = 0
-            self.search_keyword = ""
-            self.indices = []
+    def _reset_search_state(self) -> None:
+        self.current_list_index = None
+        self.search_keyword = ""
+        self.indices = []
 
-        if self.current_index == 0 and keyword:
-            self.search_logs(keyword)
-            self.search_keyword = keyword
-            self.current_index = len(self.indices) - 1
+    def _perform_search(self, keyword: str) -> None:
+        self.search_logs(keyword)
+        self.search_keyword = keyword
+        self.current_list_index = len(self.indices) - 1
 
-        if self.indices:
-            self.current_index -= 1
-            self.update_input_border()
-            logs.scroll_to(
-                y=self.indices[self.current_index], animate=False, duration=0
-            )
-            logs.keyword = keyword
-            logs.current_index = self.indices[self.current_index] + 1
-            logs.refresh()  # Force refresh, just to get rid of slow visual changes.
-        else:
-            input.border_title = "No results"
-            self.current_index = 0
+    def _update_input_display(self, keyword: str) -> None:
+        self.update_input_border()
+        logs.scroll_to(y=self._get_indices_list_value(), animate=False, duration=0)
+        logs.keyword = keyword
+        logs.current_index = self._get_indices_list_value()
+        logs.refresh()  # Force refresh, just to get rid of slow visual changes.
 
-    def update_input_border(self):
-        line = str(self.indices[self.current_index + 1])
+    def _show_no_results(self) -> None:
         input = self.query_one("#search_log_input")
-        input.border_title = f"{self.current_index + 1}/{len(self.indices) - 1}"
+        input.border_title = "No results"
+        self.current_list_index = 0
+
+    def _update_list_index(self) -> None:
+        if self.current_list_index == 0:
+            self.current_list_index = len(self.indices) - 1
+        else:
+            self.current_list_index -= 1
+
+    def _get_indices_list_value(self):
+        return self.indices[self.current_list_index]
+
+    def update_input_border(self) -> None:
+        line = str(self._get_indices_list_value())
+        input = self.query_one("#search_log_input")
+        input.border_title = f"{self.current_list_index + 1}/{len(self.indices)}"
         input.border_subtitle = f"line {line}"
 
     def live_logs_task(self):
