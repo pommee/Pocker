@@ -1,5 +1,4 @@
 import logging
-import time
 from threading import Event
 
 import docker
@@ -73,17 +72,17 @@ class DockerManager:
 
     def live_container_logs(self, logs: LogLines, stop_event: Event):
         logs.clear()
-        last_fetch = time.time()
 
-        while not stop_event.is_set():
-            try:
-                new_logs = self.selected_container.logs(since=last_fetch)
-            except Exception:
-                # Container might have been removed.
-                stop_event.set()
+        try:
+            log_stream = self.selected_container.logs(stream=True, follow=True)
 
-            if new_logs:
-                last_fetch = time.time()
-                logs.write(new_logs.decode("utf-8").rstrip())
+            for log in log_stream:
+                if stop_event.is_set():
+                    break
+                logs.write(log.decode("utf-8").rstrip())
 
-            time.sleep(1)
+        except Exception:
+            stop_event.set()  # Handle exceptions, for example, if the container is removed
+
+        finally:
+            log_stream.close()  # Clean up or close resources if needed

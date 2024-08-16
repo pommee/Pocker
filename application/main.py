@@ -71,6 +71,7 @@ class UI(App):
     ]
     current_index = 0
     _ERROR = None
+    _first_run = True
 
     def set_bindings_from_config_keymap(self) -> None:
         keymap = load_config().keymap
@@ -150,6 +151,7 @@ class UI(App):
         if self._ERROR:
             self.app.push_screen(StartupError(self._ERROR))
             return
+        self.read_and_apply_config()
         self._run_threads()
         self.set_header_statuses()
         self._look_for_update()
@@ -314,6 +316,10 @@ class UI(App):
                 self.action_shell()
 
     def action_restore_logs(self):
+        if self._first_run:
+            self._first_run = False
+            return
+
         logs = self.query_one("#logs", LogLines)
 
         self.query_one(TabbedContent).active = "logpane"
