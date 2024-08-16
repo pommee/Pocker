@@ -22,7 +22,7 @@ from textual.widgets import (
 )
 from yaspin import yaspin
 
-from application.docker_manager import DockerManager
+from application.docker_manager import DockerManager, NoVisibleContainers
 from application.util.config import CONFIG_PATH, load_config
 from application.util.helper import (
     get_current_version,
@@ -39,6 +39,7 @@ from application.widget.images import PockerImages
 from application.widget.log_viewer import LogLines
 from application.widget.settings import SettingsScreen
 from application.widget.shell import ShellPane
+from application.widget.startup_error_modal import StartupError
 from application.widget.topbar import TopBar
 
 #### REFERENCES ####
@@ -69,6 +70,7 @@ class UI(App):
         Binding(key="escape", action="dismiss_search_log"),
     ]
     current_index = 0
+    _ERROR = None
 
     def set_bindings_from_config_keymap(self) -> None:
         keymap = load_config().keymap
@@ -121,7 +123,12 @@ class UI(App):
         global docker_manager
 
         self.config = load_config()
-        docker_manager = DockerManager(self.config)
+
+        try:
+            docker_manager = DockerManager(self.config)
+        except NoVisibleContainers as ex:
+            self._ERROR = ex
+            return
         self.set_bindings_from_config_keymap()
 
         self.content_window = ContentWindow(
@@ -140,6 +147,9 @@ class UI(App):
         yield Footer()
 
     async def on_mount(self) -> None:
+        if self._ERROR:
+            self.app.push_screen(StartupError(self._ERROR))
+            return
         self._run_threads()
         self.set_header_statuses()
         self._look_for_update()

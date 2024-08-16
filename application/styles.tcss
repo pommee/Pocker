@@ -200,6 +200,26 @@ HelpScreen VerticalScroll {
     }
 }
 
+StartupError VerticalScroll {
+    background: $surface;
+    margin: 6 12;
+    height: 1fr;
+
+    MarkdownH1 {
+        color: white;
+        background: red 40%;
+    }
+
+    Markdown#help {
+        border: tall cornflowerblue;
+        border-title-align: center;
+        border-title-color: white 100%;
+        padding: 1;
+        background: $background;
+    }
+
+}
+
 SettingsScreen VerticalScroll {
     background: $surface;
     margin: 4 8;

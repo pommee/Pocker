@@ -16,6 +16,17 @@ logging.basicConfig(
 )
 
 
+class NoVisibleContainers(Exception):
+    REASON = "No container(s) to display"
+    HELP = f"""
+- No containers are running.
+- Set `show_all_containers` to true in config to display exited containers.  
+
+Config can be found at `{CONFIG_PATH}`
+"""
+    pass
+
+
 class DockerManager:
     def __init__(self, config: Config) -> None:
         self.client = docker.from_env()
@@ -27,10 +38,7 @@ class DockerManager:
         try:
             self.selected_container: Container = list(self.containers.values())[0]
         except IndexError:
-            raise SystemExit(
-                "No containers to display. Set 'show_all_containers' to true in config to display exited containers.\n"
-                f"Config can be found at {CONFIG_PATH}"
-            )
+            raise NoVisibleContainers()
         self.config = config
 
     @property
