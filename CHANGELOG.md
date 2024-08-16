@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/pommee/Pocker/compare/v1.11.6...v1.12.0) (2024-08-16)
+
+
+### Features
+
+* added windows support ([9df0129](https://github.com/pommee/Pocker/commit/9df012948959f65c199b486622235226738689f7))
+
 ## [1.11.6](https://github.com/pommee/Pocker/compare/v1.11.5...v1.11.6) (2024-08-13)
 
 
