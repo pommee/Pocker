@@ -19,6 +19,7 @@ click = "^8.1.7"
 colorama = "^0.4.6"
 yaspin = "^3.0.2"
 packaging = "^24.1"
+pywinpty = {version = "^2.0.13", platform = "win32"}
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "^2.3.1"

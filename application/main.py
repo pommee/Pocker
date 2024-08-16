@@ -183,7 +183,10 @@ class UI(App):
 
     @work(exclusive=True)
     async def _look_for_update(self):
-        current_version = parse(get_current_version())
+        fetched_version = get_current_version()  # can return None
+        if not fetched_version:
+            return
+        current_version = parse(fetched_version)
         last_fetch = parse(read_latest_version_fetch().version_fetched)
 
         if last_fetch > current_version:
@@ -322,8 +325,12 @@ class UI(App):
         environment_log.clear()
         environment_log.border_title = docker_manager.selected_container.name
         for entry in docker_manager.environment:
-            key = entry.split("=")[0]
-            value = entry.split("=")[1]
+            name_value = entry.split("=", maxsplit=2)
+            key = name_value[0]
+            if len(name_value) == 2:
+                value = name_value[1]
+            else:
+                value = ""
             environment_log.write(f"{key}: {value}")
         self.set_header_statuses()
 
