@@ -6,8 +6,12 @@ authors = ["pommee"]
 readme = "README.md"
 homepage = "https://github.com/pommee/Pocker"
 repository = "https://github.com/pommee/Pocker"
-documentation = "https://github.com/pommee/Pocker"
+documentation = "https://github.com/pommee/Pocker/blob/main/README.md"
 packages = [{ include = "application" }]
+
+[tool.poetry.urls]
+"Release notes" = "https://github.com/pommee/Pocker/blob/main/CHANGELOG.md"
+Funding = "https://buymeacoffee.com/pommee"
 
 [tool.poetry.dependencies]
 python = "^3.10.9"
@@ -19,7 +23,7 @@ click = "^8.1.7"
 colorama = "^0.4.6"
 yaspin = "^3.0.2"
 packaging = "^24.1"
-pywinpty = {version = "^2.0.13", platform = "win32"}
+pywinpty = { version = "^2.0.13", platform = "win32" }
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "^2.3.1"
