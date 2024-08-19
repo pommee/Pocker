@@ -1,7 +1,10 @@
 import asyncio
+from dataclasses import dataclass
 
 from docker.models.containers import Container
+from textual import on
 from textual.app import ComposeResult
+from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import (
     Label,
@@ -25,8 +28,6 @@ class PockerContainers(Widget):
         disabled: bool = False,
     ) -> None:
         self.docker_manager = docker_manager
-        self.highlighted_child_index = 0
-        self.first_run = True
         super().__init__(
             *children, name=name, id=id, classes=classes, disabled=disabled
         )
@@ -43,23 +44,32 @@ class PockerContainers(Widget):
                     classes=self.docker_manager.status(container),
                 )
 
-    def on_list_view_highlighted(self, highlighted: ListView.Highlighted):
-        if self.first_run:
-            self.first_run = False
-            return
+    @dataclass
+    class ClickedContainer(Message, bubble=True):
+        clicked_container: ListItem
 
-        list_view = highlighted.list_view
-        list_item = highlighted.item
-
-        list_item.add_class("selected")
-        list_view.children[self.highlighted_child_index].remove_class("selected")
-        self.highlighted_child_index = list_view.index
+    def on_list_view_selected(self, selected: ListView.Selected):
+        self.post_message(PockerContainers.ClickedContainer(selected.item))
 
     async def on_mount(self) -> None:
         self.list_view.children[0].add_class("selected")
         self.list_view.sort_children(
             key=lambda listview_container: listview_container.has_class("running"),
             reverse=True,
+        )
+
+    @on(ClickedContainer)
+    def _update_selected_container(self, new_selected_container: ClickedContainer):
+        selected_container = new_selected_container.clicked_container
+        containers = self.query_one(ListView)
+        container: ListItem
+        for container in containers.children:
+            if container.has_class("selected"):
+                container.remove_class("selected")
+
+        selected_container.add_class("selected")
+        self.docker_manager.selected_container = self.docker_manager.containers.get(
+            str(selected_container.id)
         )
 
     async def _validate_if_any_container_selected(self):

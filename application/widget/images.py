@@ -1,5 +1,9 @@
+from dataclasses import dataclass
+
 from docker.models.images import Image
+from textual import on
 from textual.app import ComposeResult
+from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import (
     Label,
@@ -36,6 +40,26 @@ class PockerImages(Widget):
                     version = image.tags[0].split(":")[1]
                     yield ListItem(Label(f"{name}:{version}"))
 
+    @dataclass
+    class ClickedImage(Message, bubble=True):
+        clicked_image: ListItem
+
     # TODO: Implement fetching relevant information regarding an image.
-    def on_list_view_selected(self, item: ListItem):
-        pass
+    def on_list_view_selected(self, selected: ListView.Selected):
+        self.notify(
+            title="Not implemented",
+            message="Viewing images will be supported in future releases.",
+            timeout=6,
+        )
+        # self.post_message(PockerImages.ClickedImage(selected.item))
+
+    @on(ClickedImage)
+    def _update_selected_container(self, new_selected_image: ClickedImage):
+        selected_image = new_selected_image.clicked_image
+        images = self.query_one(ListView)
+        image: ListItem
+        for image in images.children:
+            if image.has_class("selected"):
+                image.remove_class("selected")
+
+        selected_image.add_class("selected")

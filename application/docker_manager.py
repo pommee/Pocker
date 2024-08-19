@@ -38,6 +38,7 @@ class DockerManager:
             self.selected_container: Container = list(self.containers.values())[0]
         except IndexError:
             raise NoVisibleContainers()
+        self.selected_image = None
         self.config = config
 
     @property

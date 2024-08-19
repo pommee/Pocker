@@ -14,7 +14,6 @@ from textual.containers import Vertical
 from textual.events import DescendantFocus
 from textual.logging import TextualHandler
 from textual.widgets import (
-    ContentSwitcher,
     Footer,
     Input,
     ListView,
@@ -256,33 +255,6 @@ class UI(App):
         except Exception:
             pass
 
-    def on_list_view_selected(self):
-        def _update_tab_content(self, tab_id: str):
-            match tab_id:
-                case "logpane":
-                    self.action_restore_logs()
-                case "attributespane":
-                    self.action_attributes()
-                case "environmentpane":
-                    self.action_environment()
-                case "statisticspane":
-                    self.action_statistics()
-                case "shellpane":
-                    self.action_shell()
-
-        old_index = self.current_index
-        new_index = self.list_view.index
-
-        if old_index == new_index:
-            return
-
-        docker_manager.selected_container = self.list_view.children[new_index].id
-        self.set_list_item_background(old_index, new_index)
-        self.content_window.run_log_task()
-
-        current_tab = self.query_one(ContentSwitcher).current
-        _update_tab_content(self, current_tab)
-
     def set_list_item_background(self, old_index: int, new_index: int):
         logs = self.query_one("#logs", LogLines)
 
@@ -298,12 +270,28 @@ class UI(App):
         )
         logs.border_title = docker_manager.selected_container.name
 
+    @on(PockerContainers.ClickedContainer)
+    def _on_container_clicked(self, event: PockerContainers.ClickedContainer):
+        """Container ListView clicked in containers list."""
+        self.content_window.query_one("#logs").border_title = event.clicked_container.id
+        self.content_window.run_log_task()
+        self._update_current_tab()
+
+    def _update_current_tab(self):
+        tabbed_content = self.query_one(TabbedContent)
+        tab_id = tabbed_content.active
+        tab = self.query_one(f"#{tab_id}")
+        self._activate_selected_tab(tab.id)
+
     @on(TabbedContent.TabActivated)
     def action_show_tab(self, tab: TabbedContent.TabActivated) -> None:
         selected_tab = tab.tab.id.replace("--content-tab-", "")
         if self.query_one(TabbedContent).active_pane == selected_tab:
             return
-        match selected_tab:
+        self._activate_selected_tab(selected_tab)
+
+    def _activate_selected_tab(self, pane_id: str):
+        match pane_id:
             case "logpane":
                 self.action_restore_logs()
             case "attributespane":
