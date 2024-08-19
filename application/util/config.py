@@ -21,6 +21,7 @@ class Config(BaseModel):
         "statistics": "d",
         "shell": "v",
         "fullscreen": "f",
+        "fullscreen-ci": "n",
         "wrap-logs": "w",
         "toggle-scroll": "s",
     }

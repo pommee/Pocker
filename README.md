@@ -95,25 +95,29 @@ Upon the first startup, a configuration file will be generated and stored at `$H
 
 ### Keymap [default]
 
-| Key   | Action        | Description                                                                      |
-| ----- | ------------- | -------------------------------------------------------------------------------- |
-| `q`   | Quit          | Exits the application.                                                           |
-| `l`   | Logs          | Opens the logs view to display log entries.                                      |
-| `/`   | Search        | Search logs.                                                                     |
-| `TAB` | Cycle widgets | Used to cycle widgets. Newly focused widget will have it's borders alter colors. |
-| `a`   | Attributes    | Displays the attributes panel, showing various item attributes.                  |
-| `e`   | Environment   | Opens the environment settings view.                                             |
-| `d`   | Statistics    | Shows statistical information related to the container.                          |
-| `v`   | Shell         | Creates a shell for the current container.                                       |
-| `f`   | Fullscreen    | Toggles fullscreen mode for the logs view.                                       |
-| `w`   | Wrap Logs     | Toggles log wrapping in the logs view.                                           |
-| `s`   | Toggle Scroll | Toggles scrolling mode for the current view.                                     |
+| Key   | Action                           | Description                                                                      |
+| ----- | -------------------------------- | -------------------------------------------------------------------------------- |
+| `q`   | Quit                             | Exits the application.                                                           |
+| `l`   | Logs                             | Opens the logs view to display log entries.                                      |
+| `/`   | Search                           | Search logs.                                                                     |
+| `TAB` | Cycle widgets                    | Used to cycle widgets. Newly focused widget will have it's borders alter colors. |
+| `a`   | Attributes                       | Displays the attributes panel, showing various item attributes.                  |
+| `e`   | Environment                      | Opens the environment settings view.                                             |
+| `d`   | Statistics                       | Shows statistical information related to the container.                          |
+| `v`   | Shell                            | Creates a shell for the current container.                                       |
+| `f`   | Fullscreen                       | Toggles fullscreen mode for the logs view.                                       |
+| `n`   | Fullscreen (Containers & Images) | Toggles fullscreen mode for containers and images view.                          |
+| `w`   | Wrap Logs                        | Toggles log wrapping in the logs view.                                           |
+| `s`   | Toggle Scroll                    | Toggles scrolling mode for the current view.                                     |
 
 This table helps you understand the functionalities assigned to each key, making navigation and operation more efficient.
 
 ### Errors
 
-Errors will be displayed whenever encountered.
+Errors will be displayed whenever encountered.  
+This can occur if an update is released with new keybinds required as an example.  
+The solution is to either add the new keybind manually or delete the config and restart pocker.  
+Default keymap can always be found [here](https://github.com/pommee/Pocker/blob/main/application/util/config.py).
 
 ![keybind-error](https://github.com/pommee/Pocker/blob/main/resources/keybind-error.png?raw=true)
 

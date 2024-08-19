@@ -1,10 +1,8 @@
 import asyncio
-from dataclasses import dataclass
 
 from docker.models.containers import Container
 from textual import events, on
 from textual.app import ComposeResult
-from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import (
     Label,
@@ -13,6 +11,7 @@ from textual.widgets import (
 )
 
 from application.docker_manager import DockerManager
+from application.messages import ClickedContainer
 
 
 class PockerContainers(Widget):
@@ -44,12 +43,8 @@ class PockerContainers(Widget):
                     classes=self.docker_manager.status(container),
                 )
 
-    @dataclass
-    class ClickedContainer(Message, bubble=True):
-        clicked_container: ListItem
-
     def on_list_view_selected(self, selected: ListView.Selected):
-        self.post_message(PockerContainers.ClickedContainer(selected.item))
+        self.post_message(ClickedContainer(selected.item))
 
     async def on_mount(self) -> None:
         self.list_view.children[0].add_class("selected")

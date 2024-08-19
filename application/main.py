@@ -22,6 +22,7 @@ from textual.widgets import (
 from yaspin import yaspin
 
 from application.docker_manager import DockerManager, NoVisibleContainers
+from application.messages import ClickedContainer
 from application.util.config import CONFIG_PATH, load_config
 from application.util.helper import (
     get_current_version,
@@ -71,6 +72,8 @@ class UI(App):
     current_index = 0
     _ERROR = None
     _first_run = True
+    _containers_and_images_maximized = False
+    _content_window_maximized = False
 
     def set_bindings_from_config_keymap(self) -> None:
         keymap = load_config().keymap
@@ -100,6 +103,11 @@ class UI(App):
             keymap.get("fullscreen"),
             "toggle_content_full_screen",
             description="Fullscreen",
+        )
+        self.set_keybind(
+            keymap.get("fullscreen-ci"),
+            "toggle_containers_images_full_screen",
+            description="Fullscreen CnI",
         )
         self.set_keybind(
             keymap.get("wrap-logs"),
@@ -270,8 +278,8 @@ class UI(App):
         )
         logs.border_title = docker_manager.selected_container.name
 
-    @on(PockerContainers.ClickedContainer)
-    def _on_container_clicked(self, event: PockerContainers.ClickedContainer):
+    @on(ClickedContainer)
+    def _on_container_clicked(self, event: ClickedContainer):
         """Container ListView clicked in containers list."""
         self.content_window.query_one("#logs").border_title = event.clicked_container.id
         self.content_window.run_log_task()
@@ -367,6 +375,7 @@ class UI(App):
 
     def action_toggle_content_full_screen(self):
         tabbed_content = self.query_one(TabbedContent)
+        content_window = self.query_one(ContentWindow)
         containers_and_images = self.query_one("#containers-and-images")
         search_window = self.query_one("#search_log_input")
 
@@ -374,14 +383,37 @@ class UI(App):
             "#containers-and-images"
         ).styles.display
         if containers_and_images_styling == "block":
+            if self._containers_and_images_maximized:
+                return
+
             containers_and_images.styles.display = "none"
-            self.query_one(ContentWindow).styles.width = "100%"
+            content_window.styles.width = "100%"
             tabbed_content.styles.width = "100%"
             search_window.styles.width = "100%"
+            self._content_window_maximized = True
         else:
             containers_and_images.styles.display = "block"
             tabbed_content.styles.width = "81%"
             search_window.styles.width = "81%"
+            self._content_window_maximized = False
+        self.set_header_statuses()
+
+    def action_toggle_containers_images_full_screen(self):
+        containers_and_images = self.query_one("#containers-and-images")
+        content_window = self.query_one(ContentWindow)
+
+        if content_window.styles.display == "block":
+            if self._content_window_maximized:
+                return
+
+            content_window.styles.display = "none"
+            containers_and_images.styles.width = "100%"
+            self._containers_and_images_maximized = True
+        else:
+            content_window.styles.display = "block"
+            containers_and_images.styles.width = "20%"
+            containers_and_images.styles.width = "20%"
+            self._containers_and_images_maximized = False
         self.set_header_statuses()
 
     def action_toggle_auto_scroll(self):
