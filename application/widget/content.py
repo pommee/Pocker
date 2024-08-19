@@ -96,9 +96,13 @@ class ContentWindow(Widget):
         case_sensitive = 0 if case_sensitive_switch else re.IGNORECASE
         compiled_pattern = re.compile(pattern, case_sensitive)
 
+        current_tab = self.query_one(TabbedContent).active
+        self.current_content_window: LogLines = self.query_one(
+            f"#{current_tab}"
+        ).children[0]
         results = [
             (line, i)
-            for i, line in enumerate(logs.lines)
+            for i, line in enumerate(self.current_content_window.lines)
             if compiled_pattern.search(line.text)
         ]
 
@@ -112,6 +116,9 @@ class ContentWindow(Widget):
 
     @on(Input.Changed)
     def input_changed(self, input=Input()) -> None:
+        if self._shell_tab_active():
+            return  # No text to look for when inside shell
+
         keyword = input.value
         self._update_case_sensitivity()
 
@@ -128,6 +135,9 @@ class ContentWindow(Widget):
 
     @on(Input.Submitted)
     def input_submitted(self, input=Input()) -> None:
+        if self._shell_tab_active():
+            return  # No text to look for when inside shell
+
         keyword = input.value
         self._update_case_sensitivity()
         self._update_list_index()
@@ -148,11 +158,17 @@ class ContentWindow(Widget):
         self.current_list_index = len(self.indices) - 1
 
     def _update_input_display(self, keyword: str) -> None:
-        self.update_input_border()
-        logs.scroll_to(y=self._get_indices_list_value(), animate=False, duration=0)
-        logs.keyword = keyword
-        logs.current_index = self._get_indices_list_value()
-        logs.refresh()  # Force refresh, just to get rid of slow visual changes.
+        try:
+            self.update_input_border()
+        except IndexError:
+            return  # No matches, don't update
+
+        self.current_content_window.scroll_to(
+            y=self._get_indices_list_value(), animate=False, duration=0
+        )
+        self.current_content_window.keyword = keyword
+        self.current_content_window.current_index = self._get_indices_list_value()
+        self.current_content_window.refresh()  # Force refresh, just to get rid of slow visual changes.
 
     def _show_no_results(self) -> None:
         input = self.query_one("#search_log_input")
@@ -213,3 +229,6 @@ class ContentWindow(Widget):
 
     def _update_logs(self, cpu: str, memory: str):
         logs.border_subtitle = f"cpu: {cpu} | ram: {memory} | logs: {len(logs.lines)}"
+
+    def _shell_tab_active(self):
+        return self.query_one(TabbedContent).active == "shellpane"
