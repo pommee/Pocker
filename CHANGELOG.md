@@ -1,3 +1,10 @@
+## [1.12.4](https://github.com/pommee/Pocker/compare/v1.12.3...v1.12.4) (2024-08-19)
+
+
+### Bug Fixes
+
+* search now works in all tabs, except for shell ([7c58e61](https://github.com/pommee/Pocker/commit/7c58e613b9d40f7e1693fd3fba65bc21eef8b3ff))
+
 ## [1.12.3](https://github.com/pommee/Pocker/compare/v1.12.2...v1.12.3) (2024-08-16)
 
 
