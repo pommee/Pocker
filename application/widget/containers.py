@@ -2,7 +2,7 @@ import asyncio
 from dataclasses import dataclass
 
 from docker.models.containers import Container
-from textual import on
+from textual import events, on
 from textual.app import ComposeResult
 from textual.message import Message
 from textual.widget import Widget
@@ -71,6 +71,15 @@ class PockerContainers(Widget):
         self.docker_manager.selected_container = self.docker_manager.containers.get(
             str(selected_container.id)
         )
+
+    def on_key(self, event: events.Key) -> None:
+        list_view: ListView = self.query_one(ListView)
+        if event.key == "down" or event.key == "j":
+            list_view.action_cursor_down()
+        if event.key == "up" or event.key == "k":
+            list_view.action_cursor_up()
+
+        list_view.action_select_cursor()
 
     async def _validate_if_any_container_selected(self):
         for child in self.list_view.walk_children():
