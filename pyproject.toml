@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pocker-tui"
-version = "1.13.0"
+version = "1.13.1"
 description = "CLI tool for docker images, containers, logs and more."
 authors = ["pommee"]
 readme = "README.md"

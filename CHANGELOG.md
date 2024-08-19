@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/pommee/Pocker/compare/v1.13.0...v1.13.1) (2024-08-19)
+
+
+### Bug Fixes
+
+* fix not able to open settings and help panes ([13ea0e7](https://github.com/pommee/Pocker/commit/13ea0e728b6b1ef7a6fa4ca4a56af6cd07e4aa55))
+
 # [1.13.0](https://github.com/pommee/Pocker/compare/v1.12.5...v1.13.0) (2024-08-19)
 
 
