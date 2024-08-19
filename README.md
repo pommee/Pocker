@@ -22,6 +22,8 @@
 
 # 👋🏼 Introduction
 
+<img width="40%" align="right" src="https://github.com/pommee/Pocker/blob/main/resources/half-preview.png?raw=true">
+
 Pocker is a TUI tool to help with docker related tasks. For example,
 
 - View containers/images.
@@ -29,13 +31,23 @@ Pocker is a TUI tool to help with docker related tasks. For example,
 - See logs, attributes, environment variables and container statistics.
 - Filter logs based on keywords.
 - Start shell inside a container.
+- Customize configuration, i.e keybinds and behaviour.  
 
 The tool is heavily based on [docker-py](https://docker-py.readthedocs.io/en/stable/index.html) and [textual](https://github.com/textualize/textual/).  
 A big thanks goes over to the creator and contributors of textual as it makes for a very sleek and easy interface.
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/pommee)
 
-## 🤏🏼 Prerequisite
+## Why?
+
+I spend a lot of time working with Docker, and typing numerous commands can be time-consuming, energy-draining, and inefficient.  
+This is something that can, of course, be improved with the right tool.
+
+The initial drive was to type less, but has since evolved into more.  
+Being able to search for a keyword and quickly get live feedback is very nice.  
+Need a new env variable? Just head over to the shell tab and run one command.
+
+## Prerequisite
 
 > [!NOTE]
 > [Pipx](https://pipx.pypa.io/stable/installation/) must be installed.  
