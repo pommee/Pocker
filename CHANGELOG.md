@@ -1,3 +1,10 @@
+## [1.12.5](https://github.com/pommee/Pocker/compare/v1.12.4...v1.12.5) (2024-08-19)
+
+
+### Bug Fixes
+
+* update active tab content when container switched ([46277b9](https://github.com/pommee/Pocker/commit/46277b9c91da62bc986671b39659bbffa7360309))
+
 ## [1.12.4](https://github.com/pommee/Pocker/compare/v1.12.3...v1.12.4) (2024-08-19)
 
 
