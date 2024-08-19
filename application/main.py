@@ -281,6 +281,9 @@ class UI(App):
     @on(ClickedContainer)
     def _on_container_clicked(self, event: ClickedContainer):
         """Container ListView clicked in containers list."""
+        if type(self.app.screen) is SettingsScreen or HelpScreen:
+            return
+
         self.content_window.query_one("#logs").border_title = event.clicked_container.id
         self.content_window.run_log_task()
         self._update_current_tab()
