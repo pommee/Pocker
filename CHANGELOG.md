@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/pommee/Pocker/compare/v1.12.5...v1.13.0) (2024-08-19)
+
+
+### Features
+
+* fullscreen containers and images view ([c878344](https://github.com/pommee/Pocker/commit/c878344f473563f9c20a209ef33a266595fe6889))
+
 ## [1.12.5](https://github.com/pommee/Pocker/compare/v1.12.4...v1.12.5) (2024-08-19)
 
 
