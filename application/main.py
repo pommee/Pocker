@@ -428,6 +428,7 @@ class UI(App):
             containers_and_images.styles.width = "20%"
             containers_and_images.styles.width = "20%"
             self._containers_and_images_maximized = False
+            self.query_one(PockerContainers)._containers_and_images_maximized = False
             for child in self.list_view.children:
                 child.remove_class("expanded-container")
         self.set_header_statuses()
