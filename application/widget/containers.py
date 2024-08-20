@@ -3,12 +3,9 @@ import asyncio
 from docker.models.containers import Container
 from textual import events, on
 from textual.app import ComposeResult
+from textual.containers import Horizontal
 from textual.widget import Widget
-from textual.widgets import (
-    Label,
-    ListItem,
-    ListView,
-)
+from textual.widgets import Button, Label, ListItem, ListView
 
 from application.docker_manager import DockerManager
 from application.messages import ClickedContainer
@@ -16,6 +13,7 @@ from application.messages import ClickedContainer
 
 class PockerContainers(Widget):
     BORDER_TITLE: str = "Containers"
+    _containers_and_images_maximized = False
 
     def __init__(
         self,
@@ -37,11 +35,45 @@ class PockerContainers(Widget):
         with self.list_view:
             container: Container
             for name, container in self.docker_manager.containers.items():
-                yield ListItem(
-                    Label(name),
-                    id=name,
-                    classes=self.docker_manager.status(container),
-                )
+                yield self._add_new_list_view_container(name, container)
+
+    def _add_new_list_view_container(self, name: str, container: Container):
+        start_btn = Button(
+            "Start",
+            id="start-container-btn",
+            tooltip="Start container.\n\n[b yellow][?][/b yellow] No effect if running.",
+        )
+        stop_btn = Button(
+            "Stop",
+            id="stop-container-btn",
+            tooltip="Stop container.\n\n[b yellow][?][/b yellow] No effect if exited.",
+        )
+        restart_container_btn = Button(
+            "Restart", id="restart-container-btn", tooltip="Restart container."
+        )
+        remove_container_btn = Button(
+            "Remove",
+            id="remove-container-btn",
+            tooltip="Remove container.\n\n[b yellow][?][/b yellow] Container must be exited before removed.",
+        )
+        container_name_label = Label(name)
+
+        list_item = ListItem(
+            Horizontal(
+                container_name_label,
+                start_btn,
+                stop_btn,
+                restart_container_btn,
+                remove_container_btn,
+            ),
+            id=name,
+            classes=f"{self.docker_manager.status(container)}",
+        )
+
+        if self._containers_and_images_maximized:
+            list_item.add_class("expanded-container")
+
+        return list_item
 
     def on_list_view_selected(self, selected: ListView.Selected):
         self.post_message(ClickedContainer(selected.item))
@@ -117,8 +149,9 @@ class PockerContainers(Widget):
                 return
 
         self.docker_manager.append_container(container_name)
+        container = self.docker_manager.containers.get(container_name)
         await self.list_view.append(
-            ListItem(Label(container_name), id=container_name, classes="running")
+            self._add_new_list_view_container(container_name, container)
         )
         await self._validate_if_any_container_selected()
 
@@ -126,7 +159,7 @@ class PockerContainers(Widget):
         container_list_item: ListItem = self.list_view.get_child_by_id(container_name)
         was_selected: bool = container_list_item.has_class("selected")
 
-        container_list_item.set_classes(status)
+        container_list_item.add_class(status)
         if was_selected:
             container_list_item.add_class("selected")
 

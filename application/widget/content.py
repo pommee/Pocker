@@ -223,8 +223,8 @@ class ContentWindow(Widget):
             cpu = f"{cpu_usage * 100:.3f}%"
             memory = f"{memory_usage_mb:.3f} MB"
             return cpu, memory
-        except KeyError as e:
-            self.log(f"Error parsing stats: {e}")
+        except KeyError:
+            # TODO: Correctly handle this case.
             return "N/A", "N/A"
 
     def _update_logs(self, cpu: str, memory: str):

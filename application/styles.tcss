@@ -134,13 +134,13 @@ Button {
     width: 50%;
 }
 
-#startstopbuttons {
-    align: center middle;
-    height: 1;
-}
-
 ListItem {
     background: transparent;
+
+    Label {
+        height: 1;
+        width: 40;
+    }
 }
 
 ListItem.selected {
@@ -162,6 +162,20 @@ ListItem.stopped {
 
 Toast.-information .toast--title {
     text-style: bold;
+}
+
+# When containers-and-images are expanded this is applied.
+.expanded-container {
+    height: 3;
+    margin: 1;
+    padding: 1;
+    background: #131313;
+
+    Button {
+        margin-right: 4;
+        background: cornflowerblue;
+        width: 4;
+    }
 }
 
 Toast {

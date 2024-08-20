@@ -6,6 +6,7 @@ from threading import Thread
 import click
 import yaml
 from colorama import Fore, Style
+from docker.models.containers import Container
 from packaging.version import parse
 from textual import on, work
 from textual.app import App, ComposeResult
@@ -14,6 +15,7 @@ from textual.containers import Vertical
 from textual.events import DescendantFocus
 from textual.logging import TextualHandler
 from textual.widgets import (
+    Button,
     Footer,
     Input,
     ListView,
@@ -22,7 +24,7 @@ from textual.widgets import (
 from yaspin import yaspin
 
 from application.docker_manager import DockerManager, NoVisibleContainers
-from application.messages import ClickedContainer
+from application.messages import ClickedContainer, ContainersAndImagesExpaned
 from application.util.config import CONFIG_PATH, load_config
 from application.util.helper import (
     get_current_version,
@@ -44,7 +46,6 @@ from application.widget.topbar import TopBar
 
 #### REFERENCES ####
 logs: LogLines
-docker_manager: DockerManager
 
 logging.basicConfig(
     level="INFO",
@@ -128,29 +129,27 @@ class UI(App):
             self.bind("<Error>", action, description=description)
 
     def compose(self) -> ComposeResult:
-        global docker_manager
-
         self.config = load_config()
 
         try:
-            docker_manager = DockerManager(self.config)
+            self.docker_manager: DockerManager = DockerManager(self.config)
         except NoVisibleContainers as ex:
             self._ERROR = ex
             return
         self.set_bindings_from_config_keymap()
 
         self.content_window = ContentWindow(
-            id="ContentWindow", docker_manager=docker_manager
+            id="ContentWindow", docker_manager=self.docker_manager
         )
 
         yield TopBar(get_current_version())
         with Vertical(id="containers-and-images"):
             yield PockerContainers(
                 id="PockerContainers",
-                docker_manager=docker_manager,
+                docker_manager=self.docker_manager,
                 classes="active-widget",
             )
-            yield PockerImages(id="PockerImages", docker_manager=docker_manager)
+            yield PockerImages(id="PockerImages", docker_manager=self.docker_manager)
         yield self.content_window
         yield Footer()
 
@@ -170,6 +169,9 @@ class UI(App):
     @on(DescendantFocus)
     def focus_switched(self, focus: DescendantFocus):
         widget = focus.widget
+
+        if self._containers_and_images_maximized:
+            return
 
         try:
             self.currently_focused_widget.remove_class("active-widget")
@@ -273,15 +275,18 @@ class UI(App):
         new_item.classes |= {"selected"}
 
         self.current_index = new_index
-        docker_manager.selected_container = docker_manager.containers.get(
+        self.docker_manager.selected_container = self.docker_manager.containers.get(
             str(new_item.children[0].renderable)
         )
-        logs.border_title = docker_manager.selected_container.name
+        logs.border_title = self.docker_manager.selected_container.name
 
     @on(ClickedContainer)
     def _on_container_clicked(self, event: ClickedContainer):
         """Container ListView clicked in containers list."""
-        if type(self.app.screen) is SettingsScreen or HelpScreen:
+        if (
+            type(self.app.screen) is SettingsScreen
+            or type(self.app.screen) is HelpScreen
+        ):
             return
 
         self.content_window.query_one("#logs").border_title = event.clicked_container.id
@@ -323,23 +328,23 @@ class UI(App):
 
         self.query_one(TabbedContent).active = "logpane"
         logs.clear()
-        logs.write(docker_manager.logs())
+        logs.write(self.docker_manager.logs())
         self.set_header_statuses()
 
     def action_attributes(self):
         self.query_one(TabbedContent).active = "attributespane"
         attributes_log: LogLines = self.query_one("#attributes_log")
         attributes_log.clear()
-        attributes_log.border_title = docker_manager.selected_container.name
-        attributes_log.write(yaml.dump(docker_manager.attributes, indent=2))
+        attributes_log.border_title = self.docker_manager.selected_container.name
+        attributes_log.write(yaml.dump(self.docker_manager.attributes, indent=2))
         self.set_header_statuses()
 
     def action_environment(self):
         self.query_one(TabbedContent).active = "environmentpane"
         environment_log: LogLines = self.query_one("#environment_log")
         environment_log.clear()
-        environment_log.border_title = docker_manager.selected_container.name
-        for entry in docker_manager.environment:
+        environment_log.border_title = self.docker_manager.selected_container.name
+        for entry in self.docker_manager.environment:
             name_value = entry.split("=", maxsplit=2)
             key = name_value[0]
             if len(name_value) == 2:
@@ -353,8 +358,8 @@ class UI(App):
         self.query_one(TabbedContent).active = "statisticspane"
         statistics_log: LogLines = self.query_one("#statistics_log")
         statistics_log.clear()
-        statistics_log.border_title = docker_manager.selected_container.name
-        statistics_log.write(yaml.dump(docker_manager.statistics, indent=2))
+        statistics_log.border_title = self.docker_manager.selected_container.name
+        statistics_log.write(yaml.dump(self.docker_manager.statistics, indent=2))
         self.set_header_statuses()
 
     def action_shell(self):
@@ -362,7 +367,7 @@ class UI(App):
         shell_log: LogLines = self.query_one("#shell-output")
         shell_log.clear()
         self.query_one(ShellPane).run_shell()
-        shell_log.border_title = docker_manager.selected_container.name
+        shell_log.border_title = self.docker_manager.selected_container.name
         self.query_one("#shell-input", Input).focus()
 
     def action_wrap_text(self):
@@ -374,7 +379,7 @@ class UI(App):
             logs.wrap = True
         self.set_header_statuses()
         logs.clear()
-        logs.write(docker_manager.logs())
+        logs.write(self.docker_manager.logs())
 
     def action_toggle_content_full_screen(self):
         tabbed_content = self.query_one(TabbedContent)
@@ -412,12 +417,49 @@ class UI(App):
             content_window.styles.display = "none"
             containers_and_images.styles.width = "100%"
             self._containers_and_images_maximized = True
+
+            for child in self.list_view.children:
+                child.add_class("expanded-container")
+
+            self.query_one(PockerContainers)._containers_and_images_maximized = True
+            self.post_message(ContainersAndImagesExpaned())
         else:
             content_window.styles.display = "block"
             containers_and_images.styles.width = "20%"
             containers_and_images.styles.width = "20%"
             self._containers_and_images_maximized = False
+            for child in self.list_view.children:
+                child.remove_class("expanded-container")
         self.set_header_statuses()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        btn_id = event.button.id
+
+        if "container-btn" not in btn_id:
+            return
+
+        container_name = str(event.button.parent.children[0].renderable)
+        container: Container = self.docker_manager.client.containers.get(container_name)
+
+        match btn_id:
+            case "start-container-btn":
+                if container.status != "running":
+                    container.start()
+            case "stop-container-btn":
+                if container.status != "exited":
+                    container.stop()
+            case "restart-container-btn":
+                container.restart()
+            case "remove-container-btn":
+                if container.status == "running":
+                    self.notify(
+                        title=f"{container_name} is still running.",
+                        message="Container can't be removed until it's exited.",
+                        timeout=6,
+                        severity="warning",
+                    )
+                    return
+                container.remove()
 
     def action_toggle_auto_scroll(self):
         logs = self.query_one("#logs", LogLines)
