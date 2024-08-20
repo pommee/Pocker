@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/pommee/Pocker/compare/v1.13.1...v1.14.0) (2024-08-20)
+
+
+### Features
+
+* controls for containers when 'containerns-and-images' are in expanded view ([cf41cef](https://github.com/pommee/Pocker/commit/cf41cef11f5ecbf8573558c5bbcc67fe70262db7))
+
 ## [1.13.1](https://github.com/pommee/Pocker/compare/v1.13.0...v1.13.1) (2024-08-19)
 
 
