@@ -1,3 +1,10 @@
+## [1.14.1](https://github.com/pommee/Pocker/compare/v1.14.0...v1.14.1) (2024-08-20)
+
+
+### Bug Fixes
+
+* correct styling when minimizing containers and images ([aabaa83](https://github.com/pommee/Pocker/commit/aabaa83318238a7ee3a452f6f323814a1c57061f))
+
 # [1.14.0](https://github.com/pommee/Pocker/compare/v1.13.1...v1.14.0) (2024-08-20)
 
 
