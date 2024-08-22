@@ -8,15 +8,8 @@ on:
 jobs:
 
   release:
-    name: Update changelog, create github release and publish to pypi 
+    name: Update changelog, create github release and store package 
     runs-on: ubuntu-latest
-
-    environment:
-      name: pypi
-      url: https://pypi.org/p/pocker-tui
-
-    permissions:
-      id-token: write  # IMPORTANT: mandatory for trusted publishing
 
     if: "!contains(github.event.head_commit.message, 'chore:')"  # Skip if "chore:" is in the commit message
 
@@ -61,6 +54,22 @@ jobs:
         name: python-package-distributions
         path: dist/
 
+
+  publish-to-pypi:
+    name: Publish to pypi
+    runs-on: ubuntu-latest
+
+    needs:
+    - release
+
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pocker-tui
+
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
     - name: Download all the dists
       uses: actions/download-artifact@v4
       with:
