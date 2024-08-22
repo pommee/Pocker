@@ -8,8 +8,17 @@ on:
 jobs:
 
   release:
-    name: Update changelog and create new github release
+    name: Update changelog, create github release and publish to pypi 
     runs-on: ubuntu-latest
+
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pocker-tui
+
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    if: "!contains(github.event.head_commit.message, 'chore:')"  # Skip if "chore:" is in the commit message
 
     steps:
     - name: Checkout code
@@ -35,38 +44,10 @@ jobs:
       run: |
         semantic-release
 
-
-  publish-to-pypi:
-    name: Publish pocker to PyPI
-    runs-on: ubuntu-latest
-
-    needs:
-    - release
-
-    environment:
-      name: pypi
-      url: https://pypi.org/p/pocker-tui
-
-    permissions:
-      id-token: write  # IMPORTANT: mandatory for trusted publishing
-    if: "!contains(github.event.head_commit.message, 'chore:')"  # Skip if "chore:" is in the commit message
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Fetch all tags
-      run: git fetch --tags
-
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11.9'
-
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        export PATH="$HOME/.local/bin:$PATH"
 
     - name: Install dependencies
       run: poetry install

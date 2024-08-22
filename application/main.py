@@ -72,7 +72,6 @@ class UI(App):
     ]
     current_index = 0
     _ERROR = None
-    _first_run = True
     _containers_and_images_maximized = False
     _content_window_maximized = False
 
@@ -322,22 +321,14 @@ class UI(App):
                 self.action_shell()
 
     def action_restore_logs(self):
-        if self._first_run:
-            self._first_run = False
-            return
-
-        logs = self.query_one("#logs", LogLines)
-
         self.query_one(TabbedContent).active = "logpane"
-        logs.clear()
-        logs.write(self.docker_manager.logs())
         self.set_header_statuses()
 
     def action_attributes(self):
         self.query_one(TabbedContent).active = "attributespane"
         attributes_log: LogLines = self.query_one("#attributes_log")
-        attributes_log.clear()
         attributes_log.border_title = self.docker_manager.selected_container.name
+        attributes_log.clear()
         attributes_log.write(yaml.dump(self.docker_manager.attributes, indent=2))
         self.set_header_statuses()
 
