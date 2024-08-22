@@ -33,7 +33,7 @@ def get_current_version():
         )
 
         for line in result.stdout.splitlines():
-            if "pocker" in line:
+            if "pocker-tui" in line:
                 version = line.split()[1]
                 return version
 
@@ -167,3 +167,13 @@ def read_changelog(previously_installed_version):
             release.print_bug_fixes()
 
     print("")
+
+
+def update_changelog():
+    response = requests.get(
+        "https://raw.githubusercontent.com/pommee/Pocker/main/CHANGELOG.md"
+    )
+    if response.status_code == 200:
+        file_path = POCKER_CONFIG_BASE_PATH / "CHANGELOG.md"
+        with open(file_path, "w") as file:
+            file.write(response.text)

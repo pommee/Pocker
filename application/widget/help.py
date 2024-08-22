@@ -71,7 +71,7 @@ class HelpScreen(ModalScreen):
             with Center():
                 yield Static(get_title(), id="title", classes="title")
             yield Markdown(HELP_MD, id="help", classes="help")
-            yield Markdown(self.read_changelog(), id="changelog", classes="changelog")
+            yield Markdown(self._read_changelog(), id="changelog", classes="changelog")
 
     @on(Markdown.LinkClicked)
     def on_markdown_link_clicked(self, event: Markdown.LinkClicked) -> None:
@@ -80,7 +80,7 @@ class HelpScreen(ModalScreen):
     def action_go(self, href: str) -> None:
         webbrowser.open(href)
 
-    def read_changelog(self):
+    def _read_changelog(self):
         file_path = POCKER_CONFIG_BASE_PATH / "CHANGELOG.md"
         if not file_path.exists():
             response = requests.get(

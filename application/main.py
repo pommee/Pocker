@@ -32,6 +32,7 @@ from application.util.helper import (
     read_changelog,
     read_latest_version_fetch,
     time_since_last_fetch,
+    update_changelog,
     write_latest_version_fetch,
 )
 from application.widget.containers import PockerContainers
@@ -512,40 +513,39 @@ def cli(ctx):
 @cli.command()
 @click.option("--force", "-f", is_flag=True, help="Force update.")
 def update(force):
-    current_version = parse(get_current_version())
-    latest_version = None
-
     if time_since_last_fetch() < 5 and not force:
         print(
             f"⚠️ {Fore.YELLOW}Updating too often might lead to being rate-limited.{Style.RESET_ALL}\n"
             "Pass --force or -f to force update."
         )
         return
-    else:
-        latest_version = get_latest_version()
-        write_latest_version_fetch(latest_version.base_version)
 
-    if latest_version is not None and latest_version > current_version:
+    current_version = parse(get_current_version())
+    latest_version = get_latest_version()
+    write_latest_version_fetch(latest_version.base_version)
+
+    if latest_version > current_version:
         with yaspin(text=f"Updating to v{latest_version}", timer=True) as sp:
             result = subprocess.run(
-                [
-                    "pipx",
-                    "install",
-                    "git+https://github.com/pommee/Pocker@main",
-                    "--force",
-                ],
+                ["pipx", "install", "pocker-tui", "--force"],
                 text=True,
                 capture_output=True,
                 check=True,
             )
-            sp.ok()
-            if "installed package pocker" in result.stdout:
+            sp.ok(text="[DONE]")
+            if "installed package pocker-tui" in result.stdout:
                 click.echo(
-                    f"Pocker is now updated from{Fore.LIGHTYELLOW_EX} v{current_version}{Style.RESET_ALL}{Fore.LIGHTGREEN_EX} -> v{latest_version}{Style.RESET_ALL}"
+                    f"Pocker updated from{Fore.LIGHTYELLOW_EX} v{current_version}{Style.RESET_ALL}"
+                    f"{Fore.LIGHTGREEN_EX} -> v{latest_version}{Style.RESET_ALL}"
                 )
+                update_changelog()
                 read_changelog(current_version)
-            return
-    if latest_version == current_version:
-        print(
-            f"{Fore.LIGHTGREEN_EX}Already running latest (v{latest_version}){Style.RESET_ALL}"
-        )
+                return
+
+            print("An error occured!")
+            print("STDOUT: ", result.stdout)
+            print("STDERR: ", result.stderr)
+
+    print(
+        f"{Fore.LIGHTGREEN_EX}Already running latest (v{latest_version}){Style.RESET_ALL}"
+    )
