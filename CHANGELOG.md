@@ -1,3 +1,10 @@
+## [1.14.2](https://github.com/pommee/Pocker/compare/v1.14.1...v1.14.2) (2024-08-22)
+
+
+### Bug Fixes
+
+* prevent duplicated logs ([dc213aa](https://github.com/pommee/Pocker/commit/dc213aa980495f3a6dfa3755c1d74b5ef6c193b2))
+
 ## [1.14.1](https://github.com/pommee/Pocker/compare/v1.14.0...v1.14.1) (2024-08-20)
 
 
