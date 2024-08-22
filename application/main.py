@@ -291,7 +291,9 @@ class UI(App):
 
         self.content_window.query_one("#logs").border_title = event.clicked_container.id
         self.content_window.run_log_task()
-        self._update_current_tab()
+        if self.content_window.query_one(TabbedContent).active != "logpane":
+            # Prevent duplicated logs appearing.
+            self._update_current_tab()
 
     def _update_current_tab(self):
         tabbed_content = self.query_one(TabbedContent)
