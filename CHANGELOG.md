@@ -1,3 +1,11 @@
+## [1.14.3](https://github.com/pommee/Pocker/compare/v1.14.2...v1.14.3) (2024-08-22)
+
+
+### Bug Fixes
+
+* prevent duplicated logs when using keybinds ([016deb6](https://github.com/pommee/Pocker/commit/016deb661cce3cfa3c287a36b5c50824162a7122))
+* update command now installs via pipx ([b9a272d](https://github.com/pommee/Pocker/commit/b9a272da8e4d64ec7ae4129a5803e890acb68a2c))
+
 ## [1.14.2](https://github.com/pommee/Pocker/compare/v1.14.1...v1.14.2) (2024-08-22)
 
 
