@@ -21,6 +21,7 @@ from textual.widgets import (
     ListView,
     TabbedContent,
 )
+from textual_plotext import PlotextPlot
 from yaspin import yaspin
 
 from application.docker_manager import DockerManager, NoVisibleContainers
@@ -348,13 +349,20 @@ class UI(App):
             environment_log.write(f"{key}: {value}")
         self.set_header_statuses()
 
-    def action_statistics(self):
+    async def action_statistics(self):
         self.query_one(TabbedContent).active = "statisticspane"
+        statistics_plot: PlotextPlot = self.query_one("#statistics_plot")
+
+        statistics_plot.border_title = self.docker_manager.selected_container.name
+        self.set_header_statuses()
+        self._write_statistics_log()
+
+    @work
+    async def _write_statistics_log(self):
         statistics_log: LogLines = self.query_one("#statistics_log")
         statistics_log.clear()
         statistics_log.border_title = self.docker_manager.selected_container.name
         statistics_log.write(yaml.dump(self.docker_manager.statistics, indent=2))
-        self.set_header_statuses()
 
     def action_shell(self):
         self.query_one(TabbedContent).active = "shellpane"

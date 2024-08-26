@@ -1,11 +1,7 @@
 .PHONY: dev format format-fix
 
 dev:
-ifeq ($(VIRTUAL_ENV),)
-	poetry shell
-else
-	textual run --dev application.main:UI
-endif
+	poetry run textual run --dev application.main:UI
 
 format: 
 	ruff format --quiet && ruff check --quiet

@@ -1,4 +1,5 @@
 import re
+import time
 from threading import Event, Thread
 from typing import Any
 
@@ -17,6 +18,7 @@ from textual.widgets import (
 from application.docker_manager import DockerManager
 from application.widget.log_viewer import LogLines
 from application.widget.shell import ShellPane
+from application.widget.statistics import Statistics
 
 
 class ContentWindow(Widget):
@@ -78,6 +80,8 @@ class ContentWindow(Widget):
                 environment.scroll_end(animate=False)
                 yield environment
             with TabPane("Statistics", id="statisticspane"):
+                yield Statistics()
+
                 statistics = LogLines(
                     id="statistics_log",
                     highlight=True,
@@ -205,6 +209,7 @@ class ContentWindow(Widget):
             try:
                 stats = self._fetch_container_stats()
                 cpu, memory = self._parse_stats(stats)
+                self._update_plots_if_visible(cpu, memory)
                 self._update_logs(cpu, memory)
             except Exception:
                 stop_event.set()
@@ -226,6 +231,11 @@ class ContentWindow(Widget):
         except KeyError:
             # TODO: Correctly handle this case.
             return "N/A", "N/A"
+
+    def _update_plots_if_visible(self, cpu: str, memory: str):
+        if self.query_one(TabbedContent).active == "statisticspane":
+            current_time = time.strftime("%M:%S")
+            self.query_one(Statistics).update(cpu, memory, current_time)
 
     def _update_logs(self, cpu: str, memory: str):
         logs.border_subtitle = f"cpu: {cpu} | ram: {memory} | logs: {len(logs.lines)}"
