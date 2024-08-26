@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/pommee/Pocker/compare/v1.14.3...v1.15.0) (2024-08-26)
+
+
+### Features
+
+* added plot for cpu and memory in statistics pane ([8e21518](https://github.com/pommee/Pocker/commit/8e2151896cc03e47f929f3b13ae5a2e6ab2c7d92))
+
 ## [1.14.3](https://github.com/pommee/Pocker/compare/v1.14.2...v1.14.3) (2024-08-22)
 
 
