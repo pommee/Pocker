@@ -80,7 +80,8 @@ class ContentWindow(Widget):
                 environment.scroll_end(animate=False)
                 yield environment
             with TabPane("Statistics", id="statisticspane"):
-                yield Statistics()
+                yield Statistics(label="CPU (%)", id="statistics_plot_cpu")
+                yield Statistics(label="RAM (MB)", id="statistics_plot_memory")
 
                 statistics = LogLines(
                     id="statistics_log",
@@ -234,8 +235,13 @@ class ContentWindow(Widget):
 
     def _update_plots_if_visible(self, cpu: str, memory: str):
         if self.query_one(TabbedContent).active == "statisticspane":
+            cpu = float(cpu.replace("%", ""))
+            memory = float(memory.replace("MB", ""))
             current_time = time.strftime("%M:%S")
-            self.query_one(Statistics).update(cpu, memory, current_time)
+            self.query_one("#statistics_plot_cpu", Statistics).update(cpu, current_time)
+            self.query_one("#statistics_plot_memory", Statistics).update(
+                memory, current_time
+            )
 
     def _update_logs(self, cpu: str, memory: str):
         logs.border_subtitle = f"cpu: {cpu} | ram: {memory} | logs: {len(logs.lines)}"

@@ -21,7 +21,6 @@ from textual.widgets import (
     ListView,
     TabbedContent,
 )
-from textual_plotext import PlotextPlot
 from yaspin import yaspin
 
 from application.docker_manager import DockerManager, NoVisibleContainers
@@ -282,7 +281,7 @@ class UI(App):
         logs.border_title = self.docker_manager.selected_container.name
 
     @on(ClickedContainer)
-    def _on_container_clicked(self, event: ClickedContainer):
+    async def _on_container_clicked(self, event: ClickedContainer):
         """Container ListView clicked in containers list."""
         if (
             type(self.app.screen) is SettingsScreen
@@ -294,22 +293,22 @@ class UI(App):
         self.content_window.run_log_task()
         if self.content_window.query_one(TabbedContent).active != "logpane":
             # Prevent duplicated logs appearing.
-            self._update_current_tab()
+            await self._update_current_tab()
 
-    def _update_current_tab(self):
+    async def _update_current_tab(self):
         tabbed_content = self.query_one(TabbedContent)
         tab_id = tabbed_content.active
         tab = self.query_one(f"#{tab_id}")
-        self._activate_selected_tab(tab.id)
+        await self._activate_selected_tab(tab.id)
 
     @on(TabbedContent.TabActivated)
-    def action_show_tab(self, tab: TabbedContent.TabActivated) -> None:
+    async def action_show_tab(self, tab: TabbedContent.TabActivated) -> None:
         selected_tab = tab.tab.id.replace("--content-tab-", "")
         if self.query_one(TabbedContent).active_pane == selected_tab:
             return
-        self._activate_selected_tab(selected_tab)
+        await self._activate_selected_tab(selected_tab)
 
-    def _activate_selected_tab(self, pane_id: str):
+    async def _activate_selected_tab(self, pane_id: str):
         match pane_id:
             case "logpane":
                 self.action_restore_logs()
@@ -351,11 +350,8 @@ class UI(App):
 
     async def action_statistics(self):
         self.query_one(TabbedContent).active = "statisticspane"
-        statistics_plot: PlotextPlot = self.query_one("#statistics_plot")
-
-        statistics_plot.border_title = self.docker_manager.selected_container.name
-        self.set_header_statuses()
         self._write_statistics_log()
+        self.set_header_statuses()
 
     @work
     async def _write_statistics_log(self):
