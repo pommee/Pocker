@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/pommee/Pocker/compare/v1.15.0...v1.16.0) (2024-08-27)
+
+
+### Features
+
+* separate plots for cpu and memory ([c4f6879](https://github.com/pommee/Pocker/commit/c4f6879180c6b7de1192dddc278ef2d6ca2da548))
+
 # [1.15.0](https://github.com/pommee/Pocker/compare/v1.14.3...v1.15.0) (2024-08-26)
 
 
