@@ -76,7 +76,8 @@ class PockerContainers(Widget):
         return list_item
 
     def on_list_view_selected(self, selected: ListView.Selected):
-        self.post_message(ClickedContainer(selected.item))
+        if selected.item != self.query_one(".selected"):
+            self.post_message(ClickedContainer(selected.item))
 
     async def on_mount(self) -> None:
         self.list_view.children[0].add_class("selected")

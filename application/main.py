@@ -281,7 +281,7 @@ class UI(App):
         logs.border_title = self.docker_manager.selected_container.name
 
     @on(ClickedContainer)
-    async def _on_container_clicked(self, event: ClickedContainer):
+    def _on_container_clicked(self, event: ClickedContainer):
         """Container ListView clicked in containers list."""
         if (
             type(self.app.screen) is SettingsScreen
@@ -293,22 +293,22 @@ class UI(App):
         self.content_window.run_log_task()
         if self.content_window.query_one(TabbedContent).active != "logpane":
             # Prevent duplicated logs appearing.
-            await self._update_current_tab()
+            self._update_current_tab()
 
-    async def _update_current_tab(self):
+    def _update_current_tab(self):
         tabbed_content = self.query_one(TabbedContent)
         tab_id = tabbed_content.active
         tab = self.query_one(f"#{tab_id}")
-        await self._activate_selected_tab(tab.id)
+        self._activate_selected_tab(tab.id)
 
     @on(TabbedContent.TabActivated)
-    async def action_show_tab(self, tab: TabbedContent.TabActivated) -> None:
+    def action_show_tab(self, tab: TabbedContent.TabActivated) -> None:
         selected_tab = tab.tab.id.replace("--content-tab-", "")
         if self.query_one(TabbedContent).active_pane == selected_tab:
             return
-        await self._activate_selected_tab(selected_tab)
+        self._activate_selected_tab(selected_tab)
 
-    async def _activate_selected_tab(self, pane_id: str):
+    def _activate_selected_tab(self, pane_id: str):
         match pane_id:
             case "logpane":
                 self.action_restore_logs()
@@ -323,7 +323,6 @@ class UI(App):
 
     def action_restore_logs(self):
         self.query_one(TabbedContent).active = "logpane"
-        self.set_header_statuses()
 
     def action_attributes(self):
         self.query_one(TabbedContent).active = "attributespane"
@@ -331,7 +330,6 @@ class UI(App):
         attributes_log.border_title = self.docker_manager.selected_container.name
         attributes_log.clear()
         attributes_log.write(yaml.dump(self.docker_manager.attributes, indent=2))
-        self.set_header_statuses()
 
     def action_environment(self):
         self.query_one(TabbedContent).active = "environmentpane"
@@ -346,15 +344,12 @@ class UI(App):
             else:
                 value = ""
             environment_log.write(f"{key}: {value}")
-        self.set_header_statuses()
 
-    async def action_statistics(self):
+    def action_statistics(self):
         self.query_one(TabbedContent).active = "statisticspane"
         self._write_statistics_log()
-        self.set_header_statuses()
 
-    @work
-    async def _write_statistics_log(self):
+    def _write_statistics_log(self):
         statistics_log: LogLines = self.query_one("#statistics_log")
         statistics_log.clear()
         statistics_log.border_title = self.docker_manager.selected_container.name
