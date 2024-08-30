@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/pommee/Pocker/compare/v1.16.0...v1.17.0) (2024-08-30)
+
+
+### Features
+
+* fix exception when clicking statistics with mouse. textual dep updated ([9dec04c](https://github.com/pommee/Pocker/commit/9dec04c71384243c6aae5e007ad634b5c1d3a4b9))
+
 # [1.16.0](https://github.com/pommee/Pocker/compare/v1.15.0...v1.16.0) (2024-08-27)
 
 
