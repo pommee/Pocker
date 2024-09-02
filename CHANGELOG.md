@@ -1,3 +1,10 @@
+## [1.17.1](https://github.com/pommee/Pocker/compare/v1.17.0...v1.17.1) (2024-09-02)
+
+
+### Bug Fixes
+
+* fix bug where instance of screens crashes the application ([5333633](https://github.com/pommee/Pocker/commit/53336330e78d957e6011aa15bb13dd492e601a68))
+
 # [1.17.0](https://github.com/pommee/Pocker/compare/v1.16.0...v1.17.0) (2024-08-30)
 
 
