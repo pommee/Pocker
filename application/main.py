@@ -56,7 +56,7 @@ logging.basicConfig(
 
 class UI(App):
     CSS_PATH = "styles.tcss"
-    SCREENS = {"helpscreen": HelpScreen(), "settingsscreen": SettingsScreen()}
+    SCREENS = {"helpscreen": HelpScreen, "settingsscreen": SettingsScreen}
     TITLE = "Pocker"
     BINDINGS = [
         Binding(
