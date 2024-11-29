@@ -1,3 +1,11 @@
+## [1.17.2](https://github.com/pommee/Pocker/compare/v1.17.1...v1.17.2) (2024-11-29)
+
+
+### Bug Fixes
+
+* improve container shell ([b641585](https://github.com/pommee/Pocker/commit/b6415853894d9758023011c16999b271072d2e0d))
+* respect log_tail config when started ([523708b](https://github.com/pommee/Pocker/commit/523708b8d57e9b612f47a00de71cc463c87b3f1c))
+
 ## [1.17.1](https://github.com/pommee/Pocker/compare/v1.17.0...v1.17.1) (2024-09-02)
 
 
