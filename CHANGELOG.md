@@ -1,3 +1,10 @@
+## [1.17.3](https://github.com/pommee/Pocker/compare/v1.17.2...v1.17.3) (2024-11-29)
+
+
+### Bug Fixes
+
+* revert dependency upgrades ([f0921de](https://github.com/pommee/Pocker/commit/f0921de0467abec66d247d6a4bf718fe28f999db))
+
 ## [1.17.2](https://github.com/pommee/Pocker/compare/v1.17.1...v1.17.2) (2024-11-29)
 
 
