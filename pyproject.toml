@@ -16,7 +16,7 @@ Funding = "https://buymeacoffee.com/pommee"
 [tool.poetry.dependencies]
 python = "^3.10.9"
 docker = "^7.0.0"
-textual = "^0.79.0"
+textual = "^0.88.0"
 pyyaml = "^6.0.1"
 pydantic = "^2.7.3"
 click = "^8.1.7"
@@ -25,6 +25,7 @@ yaspin = "^3.0.2"
 packaging = "^24.1"
 pywinpty = { version = "^2.0.13", platform = "win32" }
 textual-plotext = "^0.2.1"
+pyte = "^0.8.2"
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "^2.3.1"
