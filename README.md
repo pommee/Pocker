@@ -1,5 +1,9 @@
 <p align="center">
   <img src="https://github.com/pommee/Pocker/blob/main/resources/pocker-name.png?raw=true" />
+</p>
+
+<p align="center">
+  <img src="https://static.pepy.tech/badge/pocker-tui" alt="PyPI Downloads">
   <table>
     <tr>
         <td>
