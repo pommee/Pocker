@@ -75,7 +75,9 @@ class DockerManager:
         logs.clear()
 
         try:
-            log_stream = self.selected_container.logs(stream=True, follow=True)
+            log_stream = self.selected_container.logs(
+                stream=True, follow=True, tail=self.config.log_tail
+            )
 
             for log in log_stream:
                 if stop_event.is_set():
