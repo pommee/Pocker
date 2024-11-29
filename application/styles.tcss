@@ -114,6 +114,7 @@ Switch {
 }
 
 #shell-output {
+    height: 90vh;
     border: wide gray;
 }
 

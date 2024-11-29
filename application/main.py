@@ -43,6 +43,7 @@ from application.widget.log_viewer import LogLines
 from application.widget.settings import SettingsScreen
 from application.widget.shell import ShellPane
 from application.widget.startup_error_modal import StartupError
+from application.widget.terminal import Terminal
 from application.widget.topbar import TopBar
 
 #### REFERENCES ####
@@ -356,12 +357,13 @@ class UI(App):
         statistics_log.write(yaml.dump(self.docker_manager.statistics, indent=2))
 
     def action_shell(self):
+        shell: Terminal = self.query_one("#shell-output")
+        shell_wrapper: ShellPane = self.query_one(ShellPane)
+
         self.query_one(TabbedContent).active = "shellpane"
-        shell_log: LogLines = self.query_one("#shell-output")
-        shell_log.clear()
-        self.query_one(ShellPane).run_shell()
-        shell_log.border_title = self.docker_manager.selected_container.name
-        self.query_one("#shell-input", Input).focus()
+
+        shell_wrapper.initialize()
+        shell.focus()
 
     def action_wrap_text(self):
         logs = self.query_one("#logs", LogLines)
