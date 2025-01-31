@@ -1,3 +1,10 @@
+## [1.17.5](https://github.com/pommee/Pocker/compare/v1.17.4...v1.17.5) (2025-01-31)
+
+
+### Bug Fixes
+
+* parallel container and image fetch ([b30ceec](https://github.com/pommee/Pocker/commit/b30ceec24bb4c3976a579c3274c3e7ec1169fef8))
+
 ## [1.17.4](https://github.com/pommee/Pocker/compare/v1.17.3...v1.17.4) (2025-01-31)
 
 
