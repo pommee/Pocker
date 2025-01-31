@@ -29,6 +29,10 @@ TopBar {
 
 #containers-and-images {
     width: 20%;
+
+    Button {
+        display: none;
+    }
 }
 
 PockerContainers {
@@ -173,6 +177,7 @@ Toast.-information .toast--title {
     background: #131313;
 
     Button {
+        display: block !important;
         margin-right: 4;
         background: cornflowerblue;
         width: 4;
