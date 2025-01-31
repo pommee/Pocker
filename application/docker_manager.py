@@ -1,5 +1,7 @@
 import logging
 from threading import Event
+import threading
+import time
 
 import docker
 from docker.models.containers import Container
@@ -29,17 +31,31 @@ Config can be found at `{CONFIG_PATH}`
 class DockerManager:
     def __init__(self, config: Config) -> None:
         self.client = docker.from_env()
-        self.containers = {
-            container.name: container
-            for container in self.client.containers.list(all=config.show_all_containers)
-        }
-        self.images: ImageCollection = self.client.images.list(all=True)
-        try:
-            self.selected_container: Container = list(self.containers.values())[0]
-        except IndexError:
-            raise NoVisibleContainers()
-        self.selected_image = None
         self.config = config
+        self.containers: dict[str, Container] = {}
+        self.images: ImageCollection = None
+        self.selected_container: Container = None
+        self.selected_image = None
+
+        container_thread = threading.Thread(target=self._load_containers)
+        image_thread = threading.Thread(target=self._load_images)
+
+        container_thread.start()
+        image_thread.start()
+
+        container_thread.join()
+
+        if not self.containers:
+            raise NoVisibleContainers()
+
+        self.selected_container = next(iter(self.containers.values()))
+
+    def _load_containers(self):
+        containers = self.client.containers.list(all=self.config.show_all_containers)
+        self.containers = {container.name: container for container in containers}
+
+    def _load_images(self):
+        self.images = self.client.images.list(all=True)
 
     @property
     def attributes(self) -> Container:
