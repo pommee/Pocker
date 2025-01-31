@@ -1,3 +1,10 @@
+## [1.17.4](https://github.com/pommee/Pocker/compare/v1.17.3...v1.17.4) (2025-01-31)
+
+
+### Bug Fixes
+
+* ensure buttons are hidden when containers are not maximized ([9494ef0](https://github.com/pommee/Pocker/commit/9494ef0f6d756f4a74037efccfaa6cbcc2c85da7))
+
 ## [1.17.3](https://github.com/pommee/Pocker/compare/v1.17.2...v1.17.3) (2024-11-29)
 
 
