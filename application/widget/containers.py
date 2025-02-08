@@ -118,28 +118,34 @@ class PockerContainers(Widget):
         first_child.add_class("selected")
 
     def live_status_events_task(self, loop: asyncio.AbstractEventLoop):
-        event: dict[str, str]
-        for event in self.docker_manager.client.events(decode=True):
-            if event["Type"] == "container":
-                container_name = event.get("Actor").get("Attributes").get("name")
-                match event["status"]:
-                    case "start":
-                        asyncio.run_coroutine_threadsafe(
-                            self._container_started(container_name), loop
-                        )
-                    case "stop":
-                        asyncio.run_coroutine_threadsafe(
-                            self._container_status_changed(container_name, "stopping"),
-                            loop,
-                        )
-                    case "die":
-                        asyncio.run_coroutine_threadsafe(
-                            self._container_status_changed(container_name, "down"), loop
-                        )
-                    case "destroy":
-                        asyncio.run_coroutine_threadsafe(
-                            self._container_destroyed(container_name), loop
-                        )
+        try:
+            event: dict[str, str]
+            for event in self.docker_manager.client.events(decode=True):
+                if event["Type"] == "container":
+                    container_name = event.get("Actor").get("Attributes").get("name")
+                    match event["status"]:
+                        case "start":
+                            asyncio.run_coroutine_threadsafe(
+                                self._container_started(container_name), loop
+                            )
+                        case "stop":
+                            asyncio.run_coroutine_threadsafe(
+                                self._container_status_changed(
+                                    container_name, "stopping"
+                                ),
+                                loop,
+                            )
+                        case "die":
+                            asyncio.run_coroutine_threadsafe(
+                                self._container_status_changed(container_name, "down"),
+                                loop,
+                            )
+                        case "destroy":
+                            asyncio.run_coroutine_threadsafe(
+                                self._container_destroyed(container_name), loop
+                            )
+        except Exception as e:
+            print(f"Error in live status events task: {e}")
 
     async def _container_started(self, container_name: str):
         for child in self.list_view.walk_children():

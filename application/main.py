@@ -514,39 +514,42 @@ def cli(ctx):
 @cli.command()
 @click.option("--force", "-f", is_flag=True, help="Force update.")
 def update(force):
-    if time_since_last_fetch() < 5 and not force:
-        print(
-            f"⚠️ {Fore.YELLOW}Updating too often might lead to being rate-limited.{Style.RESET_ALL}\n"
-            "Pass --force or -f to force update."
-        )
-        return
-
-    current_version = parse(get_current_version())
-    latest_version = get_latest_version()
-    write_latest_version_fetch(latest_version.base_version)
-
-    if latest_version > current_version:
-        with yaspin(text=f"Updating to v{latest_version}", timer=True) as sp:
-            result = subprocess.run(
-                ["pipx", "install", "pocker-tui", "--force"],
-                text=True,
-                capture_output=True,
-                check=True,
+    try:
+        if time_since_last_fetch() < 5 and not force:
+            print(
+                f"⚠️ {Fore.YELLOW}Updating too often might lead to being rate-limited.{Style.RESET_ALL}\n"
+                "Pass --force or -f to force update."
             )
-            sp.ok(text="[DONE]")
-            if "installed package pocker-tui" in result.stdout:
-                click.echo(
-                    f"Pocker updated from{Fore.LIGHTYELLOW_EX} v{current_version}{Style.RESET_ALL}"
-                    f"{Fore.LIGHTGREEN_EX} -> v{latest_version}{Style.RESET_ALL}"
+            return
+
+        current_version = parse(get_current_version())
+        latest_version = get_latest_version()
+        write_latest_version_fetch(latest_version.base_version)
+
+        if latest_version > current_version:
+            with yaspin(text=f"Updating to v{latest_version}", timer=True) as sp:
+                result = subprocess.run(
+                    ["pipx", "install", "pocker-tui", "--force"],
+                    text=True,
+                    capture_output=True,
+                    check=True,
                 )
-                update_changelog()
-                read_changelog(current_version)
-                return
+                sp.ok(text="[DONE]")
+                if "installed package pocker-tui" in result.stdout:
+                    click.echo(
+                        f"Pocker updated from{Fore.LIGHTYELLOW_EX} v{current_version}{Style.RESET_ALL}"
+                        f"{Fore.LIGHTGREEN_EX} -> v{latest_version}{Style.RESET_ALL}"
+                    )
+                    update_changelog()
+                    read_changelog(current_version)
+                    return
 
-            print("An error occured!")
-            print("STDOUT: ", result.stdout)
-            print("STDERR: ", result.stderr)
+                print("An error occured!")
+                print("STDOUT: ", result.stdout)
+                print("STDERR: ", result.stderr)
 
-    print(
-        f"{Fore.LIGHTGREEN_EX}Already running latest (v{latest_version}){Style.RESET_ALL}"
-    )
+        print(
+            f"{Fore.LIGHTGREEN_EX}Already running latest (v{latest_version}){Style.RESET_ALL}"
+        )
+    except Exception as e:
+        print(f"Error during update: {e}")
