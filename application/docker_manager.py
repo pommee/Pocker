@@ -103,4 +103,7 @@ class DockerManager:
             stop_event.set()  # Handle exceptions, for example, if the container is removed
 
         finally:
-            log_stream.close()  # Clean up or close resources if needed
+            try:
+                log_stream.close()
+            except ValueError:
+                pass
