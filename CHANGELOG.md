@@ -1,3 +1,18 @@
+# [1.18.0](https://github.com/pommee/Pocker/compare/v1.17.5...v1.18.0) (2025-02-08)
+
+
+### Bug Fixes
+
+* added 'up' and 'down' keys to container shell ([07f4bd5](https://github.com/pommee/Pocker/commit/07f4bd5e3aee1f0ec9baeb948888043fa511f753))
+* height of one for listitem after textual upgrade ([a22ab22](https://github.com/pommee/Pocker/commit/a22ab229a7e575190a215216458e28506c0399eb))
+* prevent double jump when cycling containers ([f668f8a](https://github.com/pommee/Pocker/commit/f668f8a8c20a2a8397f90118a2c13596df206387))
+* prevent error when fetching status ([ff380f6](https://github.com/pommee/Pocker/commit/ff380f60897a117716cc839b4504fc3286cbde67))
+
+
+### Features
+
+* trigger new release ([ba60774](https://github.com/pommee/Pocker/commit/ba6077492546ff3e05f9400758c1753df9322a0b))
+
 ## [1.17.5](https://github.com/pommee/Pocker/compare/v1.17.4...v1.17.5) (2025-01-31)
 
 
