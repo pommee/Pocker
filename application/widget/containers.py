@@ -102,9 +102,9 @@ class PockerContainers(Widget):
 
     def on_key(self, event: events.Key) -> None:
         list_view: ListView = self.query_one(ListView)
-        if event.key == "down" or event.key == "j":
+        if event.key == "j":
             list_view.action_cursor_down()
-        if event.key == "up" or event.key == "k":
+        if event.key == "k":
             list_view.action_cursor_up()
 
         list_view.action_select_cursor()
