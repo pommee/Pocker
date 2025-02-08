@@ -140,6 +140,7 @@ Button {
 }
 
 ListItem {
+    height: 1;
     background: transparent;
 
     Label {
@@ -149,6 +150,7 @@ ListItem {
 }
 
 ListItem.selected {
+    height: 1;
     text-style: bold;
     background: gray 10%;
 }
