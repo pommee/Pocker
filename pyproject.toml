@@ -24,7 +24,7 @@ colorama = "^0.4.6"
 yaspin = "^3.0.2"
 packaging = "^24.1"
 pywinpty = { version = "^2.0.13", platform = "win32" }
-textual-plotext = "^0.2.1"
+textual-plotext = "^1.0.0"
 pyte = "^0.8.2"
 
 [tool.poetry.group.dev.dependencies]

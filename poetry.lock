@@ -1244,19 +1244,19 @@ typing-extensions = ">=4.4.0,<5.0.0"
 
 [[package]]
 name = "textual-plotext"
-version = "0.2.1"
+version = "1.0.1"
 description = "A Textual widget wrapper for the Plotext plotting library"
 optional = false
-python-versions = ">=3.7.2,<4.0"
+python-versions = "<4.0.0,>=3.8.1"
 groups = ["main"]
 files = [
-    {file = "textual_plotext-0.2.1-py3-none-any.whl", hash = "sha256:a1055cf50fac9af11f56b5ff73442570eb5fd051e513b20aeb8b15a6a2abfcff"},
-    {file = "textual_plotext-0.2.1.tar.gz", hash = "sha256:bc6f2d75d8e20dda6321f8254dc3decda8f41f60e6e70a3ddd83b652b890c081"},
+    {file = "textual_plotext-1.0.1-py3-none-any.whl", hash = "sha256:6b6bfd00b29f121ddf216eaaf9bdac9d688ed72f40028484d279a10cbbb169ed"},
+    {file = "textual_plotext-1.0.1.tar.gz", hash = "sha256:836f53a3316756609e194129a35c2875638e7958c261f541e0a794f7c98011be"},
 ]
 
 [package.dependencies]
 plotext = ">=5.2.8,<6.0.0"
-textual = ">=0.40.0"
+textual = ">=0.86.2"
 
 [[package]]
 name = "textual-serve"
@@ -1469,4 +1469,4 @@ termcolor = "2.3.0"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10.9"
-content-hash = "f82f58fe102417e73c148ad3a2dd2b1051202e37f8ed757cfc28ac1a600cfc4b"
+content-hash = "f33c2317722a6ac14b1bd934840b5d0fa2f15efc22ed1f7ecc5bdaec6fc2f39d"
