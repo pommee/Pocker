@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/pommee/Pocker/compare/v1.18.0...v1.18.1) (2025-03-11)
+
+
+### Bug Fixes
+
+* move fcntl import ([0577ab4](https://github.com/pommee/Pocker/commit/0577ab46f36429a90a8f630024df5d23f6f8af89))
+
 # [1.18.0](https://github.com/pommee/Pocker/compare/v1.17.5...v1.18.0) (2025-02-08)
 
 
