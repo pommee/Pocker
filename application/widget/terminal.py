@@ -6,7 +6,6 @@ https://github.com/mitosch/textual-terminal/blob/main/textual_terminal/_terminal
 from __future__ import annotations
 
 import os
-import fcntl
 import signal
 import shlex
 import asyncio
@@ -397,6 +396,8 @@ class TerminalEmulator:
                 if msg[0] == "stdin":
                     self.p_out.write(msg[1].encode())
                 elif msg[0] == "set_size":
+                    import fcntl
+
                     winsize = struct.pack("HH", msg[1], msg[2])
                     fcntl.ioctl(self.fd, termios.TIOCSWINSZ, winsize)
                 elif msg[0] == "click":
