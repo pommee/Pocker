@@ -1,3 +1,10 @@
+## [1.18.2](https://github.com/pommee/Pocker/compare/v1.18.1...v1.18.2) (2025-03-14)
+
+
+### Bug Fixes
+
+* move termios to local import to hopefully solve windows build ([460b3ee](https://github.com/pommee/Pocker/commit/460b3eedc50c6a5a27088962e28a3ff42fabb357))
+
 ## [1.18.1](https://github.com/pommee/Pocker/compare/v1.18.0...v1.18.1) (2025-03-11)
 
 
