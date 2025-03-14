@@ -12,7 +12,6 @@ import asyncio
 from asyncio import Task
 import pty
 import struct
-import termios
 import re
 from pathlib import Path
 
@@ -397,6 +396,7 @@ class TerminalEmulator:
                     self.p_out.write(msg[1].encode())
                 elif msg[0] == "set_size":
                     import fcntl
+                    import termios
 
                     winsize = struct.pack("HH", msg[1], msg[2])
                     fcntl.ioctl(self.fd, termios.TIOCSWINSZ, winsize)
