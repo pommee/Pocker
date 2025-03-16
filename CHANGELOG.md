@@ -1,3 +1,10 @@
+## [1.18.4](https://github.com/pommee/Pocker/compare/v1.18.3...v1.18.4) (2025-03-16)
+
+
+### Bug Fixes
+
+* use pywinpty for windows ([72343c4](https://github.com/pommee/Pocker/commit/72343c4fb7946edb04626ff8ada6b10c06534785))
+
 ## [1.18.3](https://github.com/pommee/Pocker/compare/v1.18.2...v1.18.3) (2025-03-16)
 
 
