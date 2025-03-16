@@ -1,6 +1,7 @@
 """
-Thanks to Mischa Schindowski for a good base to use:
+Adapted from Mischa Schindowski's textual-terminal:
 https://github.com/mitosch/textual-terminal/blob/main/textual_terminal/_terminal.py
+Modified to support Windows using pywinpty
 """
 
 from __future__ import annotations
@@ -10,9 +11,9 @@ import signal
 import shlex
 import asyncio
 from asyncio import Task
-import pty
 import struct
 import re
+import sys
 from pathlib import Path
 
 import pyte
@@ -26,6 +27,12 @@ from textual.widget import Widget
 from textual import events
 
 from textual import log
+
+IS_WINDOWS = sys.platform == "win32"
+if IS_WINDOWS:
+    from pywinpty import PtyProcess
+else:
+    import pty
 
 
 class TerminalPyteScreen(pyte.Screen):
@@ -103,7 +110,8 @@ class Terminal(Widget, can_focus=True):
 
         self._display = self.initial_display()
 
-        self.recv_task.cancel()
+        if self.recv_task:
+            self.recv_task.cancel()
 
         self.emulator.stop()
         self.emulator = None
@@ -335,17 +343,31 @@ class Terminal(Widget, can_focus=True):
 
 class TerminalEmulator:
     def __init__(self, command: str):
+        self.command = command
         self.ncol = 80
         self.nrow = 24
         self.data_or_disconnect = None
         self.run_task: asyncio.Task = None
         self.send_task: asyncio.Task = None
 
-        self.fd = self.open_terminal(command=command)
-        self.p_out = os.fdopen(self.fd, "w+b", 0)
+        if IS_WINDOWS:
+            self._setup_windows()
+        else:
+            self._setup_unix()
+
         self.recv_queue = asyncio.Queue()
         self.send_queue = asyncio.Queue()
         self.event = asyncio.Event()
+
+    def _setup_unix(self):
+        """Setup for Unix systems using pty."""
+        self.pid, self.fd = self.open_terminal_unix(self.command)
+        self.p_out = os.fdopen(self.fd, "w+b", 0)
+
+    def _setup_windows(self):
+        """Setup for Windows systems using pywinpty."""
+        self.winpty_proc = self.open_terminal_windows(self.command)
+        self.p_out = None
 
     def start(self):
         self.run_task = asyncio.create_task(self._run())
@@ -355,67 +377,119 @@ class TerminalEmulator:
         self.run_task.cancel()
         self.send_task.cancel()
 
-        os.kill(self.pid, signal.SIGTERM)
-        os.waitpid(self.pid, 0)
+        if IS_WINDOWS:
+            if hasattr(self, "winpty_proc") and self.winpty_proc:
+                self.winpty_proc.close()
+        else:
+            os.kill(self.pid, signal.SIGTERM)
+            os.waitpid(self.pid, 0)
 
-    def open_terminal(self, command: str):
-        self.pid, fd = pty.fork()
-        if self.pid == 0:
+    def open_terminal_unix(self, command: str):
+        """Open terminal using pty for Unix systems."""
+        pid, fd = pty.fork()
+        if pid == 0:
             argv = shlex.split(command)
-            # OPTIMIZE: do not use a fixed LC_ALL
             env = dict(TERM="xterm", LC_ALL="en_US.UTF-8", HOME=str(Path.home()))
             os.execvpe(argv[0], argv, env)
 
-        return fd
+        return pid, fd
+
+    def open_terminal_windows(self, command: str):
+        """Open terminal using pywinpty for Windows systems."""
+        env = dict(TERM="xterm", HOME=str(Path.home()))
+        proc = PtyProcess.spawn(
+            shlex.split(command), dimensions=(self.nrow, self.ncol), env=env
+        )
+        return proc
+
+    async def _poll_winpty(self):
+        """Poll the winpty process for data."""
+        while True:
+            try:
+                data = self.winpty_proc.read(65536)
+                if data:
+                    self.data_or_disconnect = data
+                    self.event.set()
+                else:
+                    await asyncio.sleep(0.01)
+            except Exception as e:
+                log.warning(f"winpty read error: {e}")
+                self.data_or_disconnect = None
+                self.event.set()
+                break
 
     async def _run(self):
         loop = asyncio.get_running_loop()
 
-        def on_output():
-            try:
-                self.data_or_disconnect = self.p_out.read(65536).decode()
-                self.event.set()
-            except UnicodeDecodeError as error:
-                # NOTE: this happens sometimes, eg in w3m browsing wrongly decoded docs
-                # OPTIMIZE: here a screen refresh could be needed. some chars are
-                #   left in the buffer when scrolling
-                log.warning("decode error:", error)
-            except Exception:
-                # this exception tell's us to end the emulator:
-                # throwed when exiting the command
-                loop.remove_reader(self.p_out)
-                self.data_or_disconnect = None
-                self.event.set()
+        if IS_WINDOWS:
+            asyncio.create_task(self._poll_winpty())
+        else:
 
-        loop.add_reader(self.p_out, on_output)
+            def on_output():
+                try:
+                    self.data_or_disconnect = self.p_out.read(65536).decode()
+                    self.event.set()
+                except UnicodeDecodeError as error:
+                    log.warning("decode error:", error)
+                except Exception:
+                    loop.remove_reader(self.p_out)
+                    self.data_or_disconnect = None
+                    self.event.set()
+
+            loop.add_reader(self.p_out, on_output)
+
         await self.send_queue.put(["setup", {}])
         try:
             while True:
                 msg = await self.recv_queue.get()
                 if msg[0] == "stdin":
-                    self.p_out.write(msg[1].encode())
+                    if IS_WINDOWS:
+                        self.winpty_proc.write(msg[1])
+                    else:
+                        self.p_out.write(msg[1].encode())
                 elif msg[0] == "set_size":
-                    import fcntl
-                    import termios
+                    if IS_WINDOWS:
+                        self.winpty_proc.setwinsize(msg[1], msg[2])
+                    else:
+                        import fcntl
+                        import termios
 
-                    winsize = struct.pack("HH", msg[1], msg[2])
-                    fcntl.ioctl(self.fd, termios.TIOCSWINSZ, winsize)
+                        winsize = struct.pack("HH", msg[1], msg[2])
+                        fcntl.ioctl(self.fd, termios.TIOCSWINSZ, winsize)
                 elif msg[0] == "click":
                     x = msg[1] + 1
                     y = msg[2] + 1
                     button = msg[3]
 
-                    if button == 1:
-                        self.p_out.write(f"\x1b[<0;{x};{y}M".encode())
-                        self.p_out.write(f"\x1b[<0;{x};{y}m".encode())
+                    if IS_WINDOWS:
+                        mouse_event = (
+                            f"\x1b[<0;{x};{y}M".encode() if button == 1 else None
+                        )
+                        if mouse_event:
+                            self.winpty_proc.write(mouse_event.decode())
+                            self.winpty_proc.write(f"\x1b[<0;{x};{y}m".decode())
+                    else:
+                        if button == 1:
+                            self.p_out.write(f"\x1b[<0;{x};{y}M".encode())
+                            self.p_out.write(f"\x1b[<0;{x};{y}m".encode())
                 elif msg[0] == "scroll":
                     x = msg[2] + 1
                     y = msg[3] + 1
 
-                    if msg[1] == "up":
-                        self.p_out.write(f"\x1b[<64;{x};{y}M".encode())
-                    if msg[1] == "down":
-                        self.p_out.write(f"\x1b[<65;{x};{y}M".encode())
+                    if IS_WINDOWS:
+                        scroll_event = None
+                        if msg[1] == "up":
+                            scroll_event = f"\x1b[<64;{x};{y}M".encode()
+                        elif msg[1] == "down":
+                            scroll_event = f"\x1b[<65;{x};{y}M".encode()
+
+                        if scroll_event:
+                            self.winpty_proc.write(scroll_event.decode())
+                    else:
+                        if msg[1] == "up":
+                            self.p_out.write(f"\x1b[<64;{x};{y}M".encode())
+                        if msg[1] == "down":
+                            self.p_out.write(f"\x1b[<65;{x};{y}M".encode())
         except asyncio.CancelledError:
             pass
 
