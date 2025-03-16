@@ -1,3 +1,10 @@
+## [1.18.3](https://github.com/pommee/Pocker/compare/v1.18.2...v1.18.3) (2025-03-16)
+
+
+### Bug Fixes
+
+* better error message if docker daemon is not running or unavailable ([edd905b](https://github.com/pommee/Pocker/commit/edd905b654b246bf606c6e7c9b37896c938a07d4))
+
 ## [1.18.2](https://github.com/pommee/Pocker/compare/v1.18.1...v1.18.2) (2025-03-14)
 
 
