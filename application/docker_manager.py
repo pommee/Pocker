@@ -3,6 +3,7 @@ from threading import Event
 import threading
 
 import docker
+from docker.errors import DockerException
 from docker.models.containers import Container
 from docker.models.images import Image, ImageCollection
 from textual.logging import TextualHandler
@@ -26,10 +27,20 @@ Config can be found at `{CONFIG_PATH}`
 """
     pass
 
+class FailedDockerClient(Exception):
+    REASON = "Failed to initialize the docker client"
+    def __init__(self, details: str = ""):
+        self.HELP = f"Is the Docker daemon running?\n\n{details}"
+        message = f"{self.REASON}\n\n{self.HELP}"
+        super().__init__(message)
+
 
 class DockerManager:
     def __init__(self, config: Config) -> None:
-        self.client = docker.from_env()
+        try:
+            self.client = docker.from_env()
+        except DockerException as de:
+            raise FailedDockerClient(str(de))
         self.config = config
         self.containers: dict[str, Container] = {}
         self.images: ImageCollection = None

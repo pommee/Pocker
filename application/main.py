@@ -23,7 +23,7 @@ from textual.widgets import (
 )
 from yaspin import yaspin
 
-from application.docker_manager import DockerManager, NoVisibleContainers
+from application.docker_manager import DockerManager, FailedDockerClient, NoVisibleContainers
 from application.messages import ClickedContainer, ContainersAndImagesExpaned
 from application.util.config import CONFIG_PATH, load_config
 from application.util.helper import (
@@ -134,7 +134,7 @@ class UI(App):
 
         try:
             self.docker_manager: DockerManager = DockerManager(self.config)
-        except NoVisibleContainers as ex:
+        except (NoVisibleContainers, FailedDockerClient) as ex:
             self._ERROR = ex
             return
         self.set_bindings_from_config_keymap()
