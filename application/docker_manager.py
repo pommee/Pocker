@@ -27,8 +27,10 @@ Config can be found at `{CONFIG_PATH}`
 """
     pass
 
+
 class FailedDockerClient(Exception):
     REASON = "Failed to initialize the docker client"
+
     def __init__(self, details: str = ""):
         self.HELP = f"Is the Docker daemon running?\n\n{details}"
         message = f"{self.REASON}\n\n{self.HELP}"

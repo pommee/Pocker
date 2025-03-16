@@ -23,7 +23,11 @@ from textual.widgets import (
 )
 from yaspin import yaspin
 
-from application.docker_manager import DockerManager, FailedDockerClient, NoVisibleContainers
+from application.docker_manager import (
+    DockerManager,
+    FailedDockerClient,
+    NoVisibleContainers,
+)
 from application.messages import ClickedContainer, ContainersAndImagesExpaned
 from application.util.config import CONFIG_PATH, load_config
 from application.util.helper import (
